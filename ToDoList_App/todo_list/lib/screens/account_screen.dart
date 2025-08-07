@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:todo_list/features/auth/presentation/pages/login/login_page.dart';
 import '../presentation/bloc/auth/auth_bloc.dart';
 import '../presentation/bloc/auth/auth_event.dart';
 import 'debug_screen.dart';
@@ -17,21 +18,12 @@ class AccountScreen extends StatelessWidget {
       backgroundColor: const Color.fromARGB(255, 1, 45, 81),
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 1, 115, 182),
-        title: const Text('Tài khoản', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),  ),
+        title: const Text('Cài đặt', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),  ),
         titleSpacing: 0,
         leading: const Icon(
-          Icons.account_circle,
+          Icons.settings,
           color: Colors.white,
         ),
-        actions: [
-          // Nút đăng xuất
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () {
-              _showLogoutDialog(context);
-            },
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -356,7 +348,7 @@ class AccountScreen extends StatelessWidget {
             ),
             onPressed: () {
               context.read<AuthBloc>().add(SignOutEvent());
-              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginPage()));
               
               // Log đăng xuất
               developer.log('Người dùng đã đăng xuất', name: 'AccountScreen');

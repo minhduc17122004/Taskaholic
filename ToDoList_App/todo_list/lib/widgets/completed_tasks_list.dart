@@ -23,11 +23,11 @@ class CompletedTasksList extends StatelessWidget {
           return Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 1, 63, 113).withOpacity(0.5),
+              color: const Color.fromARGB(255, 1, 63, 113).withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -72,12 +72,12 @@ class CompletedTasksList extends StatelessWidget {
                     ],
                   ),
                 ),
-                ...tasksInList.map((task) => buildTaskItem(task)).toList(),
+                ...tasksInList.map((task) => buildTaskItem(task)),
                 const SizedBox(height: 8),
               ],
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }

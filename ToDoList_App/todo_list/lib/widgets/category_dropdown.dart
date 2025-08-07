@@ -9,13 +9,13 @@ class CategoryDropdown extends StatelessWidget {
   final bool showColors;
 
   const CategoryDropdown({
-    Key? key,
+    super.key,
     required this.selectedCategory,
     required this.onChanged,
     this.hint = 'Chọn danh mục',
     this.showIcons = true,
     this.showColors = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -129,13 +129,13 @@ class CategoryChip extends StatelessWidget {
   final VoidCallback? onDelete;
 
   const CategoryChip({
-    Key? key,
+    super.key,
     required this.categoryName,
     this.showIcon = true,
     this.showColor = true,
     this.onTap,
     this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -150,11 +150,11 @@ class CategoryChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color:
-              categoryColor?.withOpacity(0.2) ?? Colors.grey.withOpacity(0.2),
+              categoryColor?.withValues(alpha: 0.2) ?? Colors.grey.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color:
-                categoryColor?.withOpacity(0.5) ?? Colors.grey.withOpacity(0.5),
+                categoryColor?.withValues(alpha: 0.5) ?? Colors.grey.withValues(alpha: 0.5),
             width: 1,
           ),
         ),
@@ -198,11 +198,11 @@ class CategorySelector extends StatelessWidget {
   final bool allowSystemCategories;
 
   const CategorySelector({
-    Key? key,
+    super.key,
     this.selectedCategory,
     required this.onCategorySelected,
     this.allowSystemCategories = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -230,14 +230,14 @@ class CategorySelector extends StatelessWidget {
                 decoration: BoxDecoration(
                   color:
                       isSelected
-                          ? categoryColor.withOpacity(0.3)
-                          : categoryColor.withOpacity(0.1),
+                          ? categoryColor.withValues(alpha: 0.3)
+                          : categoryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color:
                         isSelected
                             ? categoryColor
-                            : categoryColor.withOpacity(0.3),
+                            : categoryColor.withValues(alpha: 0.3),
                     width: isSelected ? 2 : 1,
                   ),
                 ),

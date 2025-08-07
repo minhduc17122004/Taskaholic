@@ -17,7 +17,7 @@ class AppTheme {
         elevation: 0,
         titleTextStyle: AppTextStyles.heading.copyWith(color: Colors.white),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.cardBackground,
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -79,8 +79,8 @@ class AppTheme {
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.primary,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white.withOpacity(0.6),
+        selectedItemColor: AppColors.background,
+        unselectedItemColor: AppColors.background.withValues(alpha: 0.6),
         type: BottomNavigationBarType.fixed,
       ),
     );
@@ -100,7 +100,7 @@ class AppTheme {
         elevation: 0,
         titleTextStyle: AppTextStyles.heading.copyWith(color: Colors.white),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.cardBackgroundDark,
         elevation: 2,
         shape: RoundedRectangleBorder(

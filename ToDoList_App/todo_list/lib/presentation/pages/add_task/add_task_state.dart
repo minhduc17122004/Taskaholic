@@ -35,7 +35,7 @@ class AddTaskFormState extends AddTaskState {
     this.repeatOptions = const [
       'Không lặp lại',
       'Hàng ngày',
-      'Hàng tuần (Thứ 2-Thứ 6)',
+      'Hàng ngày (Thứ 2-Thứ 6)',
       'Hàng tuần',
       'Hàng tháng',
       'Hàng năm',

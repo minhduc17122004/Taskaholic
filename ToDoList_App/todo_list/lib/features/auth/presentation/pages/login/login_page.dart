@@ -86,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
-                          style: const TextStyle(color: AppColors.inputBackgroundDark),
+                          style: const TextStyle(color: AppColors.background),
                           decoration: InputDecoration(
                             labelText: 'Email',
                             labelStyle: const TextStyle(color: AppColors.textPrimaryDark),
@@ -123,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                         TextFormField(
                           controller: _passwordController,
                           obscureText: !_isPasswordVisible,
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(color: AppColors.background),
                           decoration: InputDecoration(
                             labelText: 'Mật khẩu',
                             labelStyle: const TextStyle(color: AppColors.textPrimaryDark),
@@ -178,7 +178,7 @@ class _LoginPageState extends State<LoginPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            disabledBackgroundColor: AppColors.inputBackgroundDark.withOpacity(0.5),
+                            disabledBackgroundColor: AppColors.inputBackgroundDark.withValues(alpha: 0.5),
                           ),
                           child: state is AuthLoading
                               ? const SizedBox(
@@ -204,7 +204,7 @@ class _LoginPageState extends State<LoginPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Text(
-                              'Chưa có tài khoản? ',
+                              'Chưa có tài khoản?',
                               style: TextStyle(color: AppColors.textPrimaryDark),
                             ),
                             TextButton(
@@ -218,7 +218,7 @@ class _LoginPageState extends State<LoginPage> {
                               child: const Text(
                                 'Đăng ký ngay',
                                 style: TextStyle(
-                                  color: AppColors.textPrimaryDark,
+                                  color: AppColors.cardBackground,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),

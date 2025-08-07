@@ -132,8 +132,8 @@ class TaskItem extends StatelessWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(
-                                    0.15,
+                                  color: Colors.white.withValues(
+                                    alpha: 0.15,
                                   ), // độ mờ của màu nền
                                   borderRadius: BorderRadius.circular(4),
                                 ),
@@ -160,7 +160,7 @@ class TaskItem extends StatelessWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.15),
+                                  color: Colors.white.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(

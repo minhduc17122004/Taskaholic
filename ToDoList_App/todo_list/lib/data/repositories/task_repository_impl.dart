@@ -236,7 +236,7 @@ class TaskRepositoryImpl implements TaskRepository {
   Future<Either<Failure, Unit>> toggleTask(String taskId) async {
     try {
       developer.log(
-        '🔄 Đang chuyển đổi trạng thái task: $taskId',
+        'Đang chuyển đổi trạng thái task: $taskId',
         name: 'TaskRepository',
       );
 
@@ -266,12 +266,10 @@ class TaskRepositoryImpl implements TaskRepository {
             !task.isCompleted
                 ? task
                     .list // Completing: keep current category in list
-                : (task.originalList ??
-                    task.list), // Uncompleting: restore original category
+                : (task.originalList.isNotEmpty ? task.originalList : task.list), // Uncompleting: restore original category
         originalList:
             !task.isCompleted
-                ? (task.originalList ??
-                    task.list) // Completing: preserve original if not set
+                ? (task.originalList.isNotEmpty ? task.originalList : task.list) // Completing: preserve original if not set
                 : task.originalList, // Uncompleting: keep existing originalList
       );
 

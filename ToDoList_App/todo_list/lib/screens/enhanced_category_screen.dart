@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:todo_list/core/theme/app_colors.dart';
 import '../presentation/bloc/task/task_bloc.dart';
 import '../presentation/bloc/task/task_state.dart';
 import '../presentation/pages/category/category_bloc.dart';
@@ -36,7 +37,7 @@ class _EnhancedCategoryScreenState extends State<EnhancedCategoryScreen> {
   void _initializeScreen() {
     if (!_isInitialized) {
       _isInitialized = true;
-      debugPrint('🔄 Enhanced Category Screen initialized');
+      debugPrint('Enhanced Category Screen initialized');
       
       // Set up search listener
       _searchController.addListener(() {
@@ -59,10 +60,10 @@ class _EnhancedCategoryScreenState extends State<EnhancedCategoryScreen> {
     try {
       if (mounted && context.mounted) {
         context.read<CategoryBloc>().add(const LoadCategoriesEvent());
-        debugPrint('✅ Categories loading triggered successfully');
+        debugPrint('Categories loading triggered successfully');
       }
     } catch (e) {
-      debugPrint('⚠️ Error loading categories: $e');
+      debugPrint('Error loading categories: $e');
       // Retry after a short delay
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
@@ -360,6 +361,7 @@ class _EnhancedCategoryScreenState extends State<EnhancedCategoryScreen> {
               setState(() {
                 if (_isSearching) {
                   _searchController.clear();
+                  _isSearching = false;
                 } else {
                   _isSearching = true;
                 }
@@ -429,7 +431,7 @@ class _EnhancedCategoryScreenState extends State<EnhancedCategoryScreen> {
             return BlocBuilder<TaskBloc, TaskState>(
               builder: (context, taskState) {
                 return ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(16),
                   itemCount: filteredCategories.length,
                   itemBuilder: (context, index) {
                     final category = filteredCategories[index];
@@ -462,7 +464,7 @@ class _EnhancedCategoryScreenState extends State<EnhancedCategoryScreen> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: categoryColor.withOpacity(0.2),
+                            color: categoryColor.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
@@ -492,7 +494,7 @@ class _EnhancedCategoryScreenState extends State<EnhancedCategoryScreen> {
                               IconButton(
                                 icon: const Icon(
                                   Icons.edit,
-                                  color: Colors.white,
+                                  color: AppColors.background,
                                 ),
                                 tooltip: 'Đổi tên',
                                 onPressed: () => _showEditCategoryDialog(category),
@@ -500,8 +502,8 @@ class _EnhancedCategoryScreenState extends State<EnhancedCategoryScreen> {
                               IconButton(
                                 icon: const Icon(
                                   Icons.delete_outline,
-                                  color: Colors.red,
-                                  size: 24,
+                                  color: AppColors.error,
+                                  size: 28,
                                 ),
                                 tooltip: 'Xóa',
                                 onPressed: () => _showDeleteCategoryDialog(category),
@@ -513,7 +515,7 @@ class _EnhancedCategoryScreenState extends State<EnhancedCategoryScreen> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: categoryColor.withOpacity(0.2),
+                                  color: categoryColor.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Text(

@@ -34,9 +34,9 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
   /// Initialize with Hot Reload safety
   void _initializeSafely() {
     try {
-      developer.log('🔄 CategoryBloc initialized', name: 'CategoryBloc');
+      developer.log('CategoryBloc initialized', name: 'CategoryBloc');
     } catch (e) {
-      developer.log('⚠️ Error during CategoryBloc initialization: $e', name: 'CategoryBloc');
+      developer.log('Error during CategoryBloc initialization: $e', name: 'CategoryBloc');
     }
   }
   
@@ -46,7 +46,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       try {
         emit(state);
       } catch (e) {
-        developer.log('⚠️ Error emitting state: $e', name: 'CategoryBloc');
+        developer.log('Error emitting state: $e', name: 'CategoryBloc');
       }
     }
   }
@@ -61,21 +61,21 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
   Future<void> _onLoadCategories(LoadCategoriesEvent event, Emitter<CategoryState> emit) async {
     // Hot Reload safety check
     if (_isDisposed || isClosed) {
-      developer.log('⚠️ Attempted to load categories on disposed bloc', name: 'CategoryBloc');
+      developer.log('Attempted to load categories on disposed bloc', name: 'CategoryBloc');
       return;
     }
     
     _safeEmit(CategoryLoading(), emit);
     
     try {
-      developer.log('🔄 Loading categories...', name: 'CategoryBloc');
+      developer.log('Loading categories...', name: 'CategoryBloc');
       
       // Get categories from repository (Firebase + local)
       final result = await categoryRepository.getCategories();
       
       await result.fold(
         (failure) async {
-          developer.log('❌ Failed to load categories from repository: ${failure.message}', name: 'CategoryBloc');
+          developer.log('Failed to load categories from repository: ${failure.message}', name: 'CategoryBloc');
           
           // Fallback to category service (local + defaults)
           final selectableCategories = _categoryService.getSelectableCategories()
@@ -83,7 +83,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
               .where((name) => !CategoryConstants.isSystemCategory(name))
               .toList();
           
-          developer.log('📂 Loaded ${selectableCategories.length} categories from fallback', name: 'CategoryBloc');
+          developer.log('Loaded ${selectableCategories.length} categories from fallback', name: 'CategoryBloc');
           _safeEmit(CategoriesLoaded(selectableCategories), emit);
         },
         (categories) async {
@@ -107,12 +107,12 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
           // Update ListsData for backward compatibility
           _updateListsData(displayCategories);
           
-          developer.log('📂 Loaded ${displayCategories.length} categories successfully', name: 'CategoryBloc');
+          developer.log('Loaded ${displayCategories.length} categories successfully', name: 'CategoryBloc');
           _safeEmit(CategoriesLoaded(displayCategories), emit);
         },
       );
     } catch (e) {
-      developer.log('❌ Error loading categories: $e', name: 'CategoryBloc');
+      developer.log('Error loading categories: $e', name: 'CategoryBloc');
       _safeEmit(CategoryError('Không thể tải danh sách danh mục: $e'), emit);
     }
   }
@@ -120,7 +120,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
   Future<void> _onAddCategory(AddCategoryEvent event, Emitter<CategoryState> emit) async {
     // Hot Reload safety check
     if (_isDisposed || isClosed) {
-      developer.log('⚠️ Attempted to add category on disposed bloc', name: 'CategoryBloc');
+      developer.log('Attempted to add category on disposed bloc', name: 'CategoryBloc');
       return;
     }
     
@@ -178,7 +178,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       
       await result.fold(
         (failure) async {
-          developer.log('❌ Failed to add category to Firebase: ${failure.message}', name: 'CategoryBloc');
+          developer.log('Failed to add category to Firebase: ${failure.message}', name: 'CategoryBloc');
           
           // Add to local service anyway
           final categoryInfo = CategoryInfo(
@@ -198,10 +198,10 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
           await ListsData.saveCustomCategories();
           
           // Category already added optimistically, just show warning
-          developer.log('⚠️ Category added locally but not synced to server', name: 'CategoryBloc');
+          developer.log('Category added locally but not synced to server', name: 'CategoryBloc');
         },
         (_) async {
-          developer.log('✅ Category added to Firebase successfully', name: 'CategoryBloc');
+          developer.log('Category added to Firebase successfully', name: 'CategoryBloc');
           
           // Add to local service
           final categoryInfo = CategoryInfo(
@@ -221,11 +221,11 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
           await ListsData.saveCustomCategories();
           
           // Category already added optimistically, operation complete
-          developer.log('✅ Category operation completed successfully', name: 'CategoryBloc');
+          developer.log('Category operation completed successfully', name: 'CategoryBloc');
         },
       );
     } catch (e) {
-      developer.log('❌ Error adding category: $e', name: 'CategoryBloc');
+      developer.log('Error adding category: $e', name: 'CategoryBloc');
       _safeEmit(CategoryError('Không thể thêm danh mục: $e'), emit);
     }
   }
@@ -269,11 +269,11 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
         
         await result.fold(
           (failure) async {
-            developer.log('❌ Failed to delete category from Firebase: ${failure.message}', name: 'CategoryBloc');
+            developer.log('Failed to delete category from Firebase: ${failure.message}', name: 'CategoryBloc');
             emit(CategoryError('Không thể xóa danh mục từ server: ${failure.message}'));
           },
           (_) async {
-            developer.log('✅ Category deleted from Firebase successfully', name: 'CategoryBloc');
+            developer.log('Category deleted from Firebase successfully', name: 'CategoryBloc');
             
             // Remove from local service
             _categoryService.removeCustomCategory(category.id);
@@ -285,17 +285,17 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
             await ListsData.saveCustomCategories();
             
             // Category already removed optimistically, operation complete
-            developer.log('✅ Category delete operation completed successfully', name: 'CategoryBloc');
+            developer.log('Category delete operation completed successfully', name: 'CategoryBloc');
           },
         );
       } else {
         // If not found in service, try to remove from legacy lists
         ListsData.removeCustomCategory(event.name);
         // Category already removed optimistically, operation complete
-        developer.log('✅ Category delete from legacy lists completed', name: 'CategoryBloc');
+        developer.log('Category delete from legacy lists completed', name: 'CategoryBloc');
       }
     } catch (e) {
-      developer.log('❌ Error deleting category: $e', name: 'CategoryBloc');
+      developer.log('Error deleting category: $e', name: 'CategoryBloc');
       emit(CategoryError('Không thể xóa danh mục: $e'));
     }
   }
@@ -305,7 +305,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
     final currentState = state;
     
     try {
-      developer.log('✏️ Editing category: ${event.oldName} -> ${event.newName}', name: 'CategoryBloc');
+      developer.log(' Editing category: ${event.oldName} -> ${event.newName}', name: 'CategoryBloc');
       
       // Validate new name
       if (event.newName.trim().isEmpty) {
@@ -367,11 +367,11 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
         
         await result.fold(
           (failure) async {
-            developer.log('❌ Failed to update category in Firebase: ${failure.message}', name: 'CategoryBloc');
+            developer.log('Failed to update category in Firebase: ${failure.message}', name: 'CategoryBloc');
             emit(CategoryError('Không thể cập nhật danh mục: ${failure.message}'));
           },
           (_) async {
-            developer.log('✅ Category updated in Firebase successfully', name: 'CategoryBloc');
+            developer.log('Category updated in Firebase successfully', name: 'CategoryBloc');
             
             // Update local service
             _categoryService.removeCustomCategory(oldCategory.id);
@@ -399,14 +399,14 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
             await ListsData.saveCustomCategories();
             
             // Category already updated optimistically, operation complete
-            developer.log('✅ Category edit operation completed successfully', name: 'CategoryBloc');
+            developer.log('Category edit operation completed successfully', name: 'CategoryBloc');
           },
         );
       } else {
         emit(CategoryError('Không tìm thấy danh mục "${event.oldName}"'));
       }
     } catch (e) {
-      developer.log('❌ Error editing category: $e', name: 'CategoryBloc');
+      developer.log('Error editing category: $e', name: 'CategoryBloc');
       emit(CategoryError('Không thể chỉnh sửa danh mục: $e'));
     }
   }
@@ -450,7 +450,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
         }
       }
     } catch (e) {
-      developer.log('❌ Error searching categories: $e', name: 'CategoryBloc');
+      developer.log('Error searching categories: $e', name: 'CategoryBloc');
       emit(CategoryError('Không thể tìm kiếm danh mục: $e'));
     }
   }

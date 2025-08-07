@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:todo_list/features/auth/presentation/pages/login/login_page.dart';
 import '../../../../../presentation/bloc/auth/auth_bloc.dart';
 import '../../../../../presentation/bloc/auth/auth_event.dart';
 import '../../../../../presentation/bloc/auth/auth_state.dart';
@@ -42,9 +43,6 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Đăng ký'),
-      ),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
@@ -69,26 +67,27 @@ class _RegisterPageState extends State<RegisterPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const Icon(
-                      Icons.app_registration,
+                      Icons.task_alt,
                       size: 80,
-                      color: AppColors.backgroundDark,
+                      color: AppColors.background,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     const Text(
-                      'Tạo tài khoản mới',
+                      'TASKAHOLIC',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 32,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.backgroundDark,
+                        color: AppColors.background,
                       ),
-                    ),
+                    ),    
                     const SizedBox(height: 32),
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(
                         labelText: 'Email',
+                        labelStyle: TextStyle(color: AppColors.textPrimaryDark),
                         prefixIcon: Icon(Icons.email),
                         border: OutlineInputBorder(),
                       ),
@@ -109,6 +108,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       obscureText: !_isPasswordVisible,
                       decoration: InputDecoration(
                         labelText: 'Mật khẩu',
+                        labelStyle: TextStyle(color: AppColors.textPrimaryDark),
                         prefixIcon: const Icon(Icons.lock),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
@@ -140,6 +140,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       obscureText: !_isConfirmPasswordVisible,
                       decoration: InputDecoration(
                         labelText: 'Xác nhận mật khẩu',
+                        labelStyle: TextStyle(color: AppColors.textPrimaryDark),
                         prefixIcon: const Icon(Icons.lock_outline),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
@@ -174,7 +175,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               ? null
                               : _onRegisterButtonPressed,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.backgroundDark,
+                            backgroundColor: AppColors.inputBackgroundDark,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             textStyle: const TextStyle(
@@ -196,15 +197,25 @@ class _RegisterPageState extends State<RegisterPage> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text(
-                        'Đã có tài khoản? Đăng nhập',
-                        style: TextStyle(color: AppColors.backgroundDark),
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Đã có tài khoản?',
+                          style: TextStyle(color: AppColors.border),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const LoginPage()),
+                            );
+                          },
+                          child: const Text('Đăng nhập', style: TextStyle(color: AppColors.cardBackground, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
                     ),
+                    
                   ],
                 ),
               ),

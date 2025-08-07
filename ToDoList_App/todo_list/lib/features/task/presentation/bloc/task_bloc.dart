@@ -65,7 +65,6 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
 
   Future<void> _onAddTask(AddTaskEvent event, Emitter<TaskState> emit) async {
     if (state is TasksLoaded) {
-      final currentState = state as TasksLoaded;
       emit(TaskLoading());
       
       try {
@@ -94,7 +93,6 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
 
   Future<void> _onUpdateTask(UpdateTaskEvent event, Emitter<TaskState> emit) async {
     if (state is TasksLoaded) {
-      final currentState = state as TasksLoaded;
       emit(TaskLoading());
       
       try {
@@ -124,7 +122,6 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
 
   Future<void> _onDeleteTask(DeleteTaskEvent event, Emitter<TaskState> emit) async {
     if (state is TasksLoaded) {
-      final currentState = state as TasksLoaded;
       emit(TaskLoading());
       
       try {

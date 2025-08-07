@@ -7,7 +7,7 @@ import '../presentation/bloc/auth/auth_state.dart';
 import '../presentation/pages/home/home_page.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({super.key});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -264,7 +264,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            disabledBackgroundColor: const Color.fromARGB(255, 1, 115, 182).withOpacity(0.5),
+                            disabledBackgroundColor: const Color.fromARGB(255, 1, 115, 182).withValues(alpha: 0.5),
                           ),
                           child: state is AuthLoading
                               ? const SizedBox(

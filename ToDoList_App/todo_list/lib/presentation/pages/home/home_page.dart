@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../presentation/bloc/auth/auth_bloc.dart';
 import '../../../presentation/bloc/auth/auth_state.dart';
-import '../../../core/di/injection_container.dart' as di;
-import '../category/category_bloc.dart';
 import '../../../presentation/bloc/task/task_bloc.dart';
 import '../../../presentation/bloc/task/task_event.dart';
 import '../../../presentation/bloc/task/task_state.dart';
@@ -16,7 +14,6 @@ import '../../../widgets/task_search_delegate.dart';
 import '../../../widgets/notifications_bottom_sheet.dart';
 import '../../../widgets/completed_tasks_list.dart';
 import '../../../screens/add_task_screen.dart';
-import '../../../screens/category_screen.dart';
 import '../../../screens/enhanced_category_screen.dart';
 import '../../../screens/account_screen.dart';
 import '../../../core/theme/app_colors.dart';
@@ -274,7 +271,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                     Container(
                       padding: const EdgeInsets.all(30),
                       decoration: BoxDecoration(
-                        color: AppColors.backgroundDark.withOpacity(0.3),
+                        color: AppColors.backgroundDark.withValues(alpha: 0.3),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -370,7 +367,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                   Container(
                     padding: const EdgeInsets.all(30),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 1, 63, 113).withOpacity(0.3),
+                      color: const Color.fromARGB(255, 1, 63, 113).withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -418,31 +415,35 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${completedTasks.length} công việc đã hoàn thành',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [  
+                            Text(
                             _getFormattedDate(),
                             style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
                             ),
                           ),
+                          const SizedBox(height: 1),
+                            Text(
+                              '${completedTasks.length} công việc đã hoàn thành',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                         ],
+                        ),
                       ),
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.3),
+                          color: Colors.green.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
@@ -491,11 +492,11 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 1, 63, 113).withOpacity(0.5),
+        color: const Color.fromARGB(255, 1, 63, 113).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -540,7 +541,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
               ],
             ),
           ),
-          ...tasks.map((task) => _buildTaskItem(task)).toList(),
+          ...tasks.map((task) => _buildTaskItem(task)),
           const SizedBox(height: 8),
         ],
       ),
@@ -553,11 +554,11 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Card(
         elevation: 4,
-        color: const Color.fromARGB(255, 1, 80, 143).withOpacity(0.6),
+        color: const Color.fromARGB(255, 1, 80, 143).withValues(alpha: 0.6),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-            color: const Color.fromARGB(255, 1, 115, 182).withOpacity(0.3),
+            color: const Color.fromARGB(255, 1, 115, 182).withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -602,7 +603,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                         'Tạo nhiệm vụ trong "$currentList"',
                         style: const TextStyle(
                           color: Colors.white70,
-                          fontSize: 14,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -629,8 +631,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: task.isCompleted 
-            ? const Color.fromARGB(255, 1, 80, 143).withOpacity(0.2)
-            : const Color.fromARGB(255, 1, 80, 143).withOpacity(0.4),
+            ? const Color.fromARGB(255, 1, 80, 143).withValues(alpha: 0.2)
+            : const Color.fromARGB(255, 1, 80, 143).withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(12),
       ),
       child: AnimatedOpacity(
@@ -638,8 +640,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         opacity: task.isCompleted ? 0.7 : 1.0,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          splashColor: Colors.white.withOpacity(0.1),
-          highlightColor: Colors.white.withOpacity(0.05),
+          splashColor: Colors.white.withValues(alpha: 0.1),
+          highlightColor: Colors.white.withValues(alpha: 0.05),
           onTap: () {
             // Navigate to task detail screen when tapping on the task item
             try {
@@ -728,7 +730,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                         duration: const Duration(milliseconds: 300),
                         style: TextStyle(
                           color: Colors.white,
-                          decoration: task.isCompleted ? TextDecoration.lineThrough : null,
                           decorationColor: Colors.white54,
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -935,7 +936,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
             // Danh sách icon cho từng tab
             final List<IconData> appBarIcons = [
               Icons.home, // Tab Home
-              Icons.check_circle_outline, // Tab Completed
+              Icons.check_circle, // Tab Completed
               Icons.category, // Tab Category
               Icons.account_circle, // Tab Account
             ];
@@ -984,20 +985,10 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                 ),
                 titleSpacing: 0,
                 actions: [
-                  // Add Task button for Home tab
-                  if (state.currentIndex == 0) // Only show on Home tab
-                    IconButton(
-                      icon: const Icon(Icons.add, color: Colors.white),
-                      tooltip: 'Thêm nhiệm vụ',
-                      onPressed: () {
-                        developer.log('AppBar Add Task button pressed', name: 'HomePage');
-                        _handleAddTask(state.currentList);
-                      },
-                    ),
                   // Category selection PopupMenuButton
                   if (state.currentIndex == 0) // Only show on Home tab
                     PopupMenuButton<String>(
-                      icon: const Icon(Icons.filter_list, color: Colors.white),
+                      icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
                       tooltip: 'Chọn danh mục',
                       color: const Color.fromARGB(255, 1, 63, 113),
                       onSelected: (String selectedCategory) {
@@ -1057,6 +1048,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                     ),
                   IconButton(
                     icon: const Icon(Icons.search, color: Colors.white),
+                    tooltip: 'Tìm kiếm',
                     onPressed: () {
                       // Hiển thị dialog tìm kiếm
                       showSearch(
@@ -1123,16 +1115,16 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                   context.read<HomeBloc>().add(ChangeTabEvent(index));
                 },
                 type: BottomNavigationBarType.fixed,
-                backgroundColor: const Color.fromARGB(255, 1, 115, 182),
-                selectedItemColor: Colors.white,
-                unselectedItemColor: Colors.white.withOpacity(0.6),
+                backgroundColor: AppColors.primary,
+                selectedItemColor: AppColors.cardBackground,
+                unselectedItemColor: AppColors.cardBackground.withValues(alpha: 0.6),
                 items: const [
                   BottomNavigationBarItem(
                     icon: Icon(Icons.home),
                     label: 'Trang chủ',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.check_circle_outline),
+                    icon: Icon(Icons.check_circle),
                     label: 'Hoàn thành',
                   ),
                   BottomNavigationBarItem(
@@ -1140,8 +1132,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                     label: 'Danh mục',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.account_circle),
-                    label: 'Tài khoản',
+                    icon: Icon(Icons.settings),
+                    label: 'Cài đặt',
                   ),
                 ],
               ),

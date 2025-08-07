@@ -81,13 +81,13 @@ class TaskSearchDelegate extends SearchDelegate<Task?> {
             Icon(
               Icons.search,
               size: 80,
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
               'Nhập từ khóa để tìm kiếm',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 fontSize: 16,
               ),
             ),
@@ -113,13 +113,13 @@ class TaskSearchDelegate extends SearchDelegate<Task?> {
             Icon(
               Icons.search_off,
               size: 80,
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
               'Không tìm thấy công việc nào',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 fontSize: 16,
               ),
             ),
@@ -186,7 +186,7 @@ class TaskSearchDelegate extends SearchDelegate<Task?> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 1, 80, 143).withOpacity(0.4),
+        color: const Color.fromARGB(255, 1, 80, 143).withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(

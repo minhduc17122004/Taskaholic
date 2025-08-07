@@ -131,7 +131,7 @@ class CategoryService {
     final Map<String, List<Task>> grouped = {};
 
     for (var task in completedTasks.where((t) => t.isCompleted)) {
-      final originalCategory = task.originalList ?? task.list;
+      final originalCategory = task.originalList.isNotEmpty ? task.originalList : task.list;
 
       if (!grouped.containsKey(originalCategory)) {
         grouped[originalCategory] = [];

@@ -35,10 +35,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   final List<String> _repeatOptions = [
     'Không lặp lại',
     'Hàng ngày',
-    'Hàng tuần (Thứ 2-Thứ 6)',
+    'Hàng ngày (Thứ 2-Thứ 6)',
     'Hàng tuần',
     'Hàng tháng',
-    'Hàng năm',
+    'Hàng năm', 
   ];
 
   // Original values for change detection

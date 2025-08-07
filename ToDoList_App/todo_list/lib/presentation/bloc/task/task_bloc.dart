@@ -82,18 +82,18 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   }
 
   Future<void> _onAddTask(AddTaskEvent event, Emitter<TaskState> emit) async {
-    developer.log('🚀 Bắt đầu thêm công việc: ${event.task.title}', name: 'TaskBloc');
+    developer.log('Bắt đầu thêm công việc: ${event.task.title}', name: 'TaskBloc');
     final result = await addTask(event.task);
     
     if (emit.isDone) return;
     
     await result.fold(
       (failure) async {
-        developer.log('❌ Lỗi khi thêm công việc: ${failure.message}', name: 'TaskBloc');
+        developer.log('Lỗi khi thêm công việc: ${failure.message}', name: 'TaskBloc');
         if (!emit.isDone) emit(TaskError(failure.message));
       },
       (_) async {
-        developer.log('✅ Đã thêm công việc thành công', name: 'TaskBloc');
+        developer.log('Đã thêm công việc thành công', name: 'TaskBloc');
         
         // Emit success state first
         if (!emit.isDone) emit(const TaskActionSuccess('Đã thêm công việc thành công'));
@@ -102,11 +102,11 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
         _scheduleNotificationForTask(event.task);
         
         // Add small delay to ensure Firebase write completion
-        developer.log('⏳ Đợi Firebase hoàn tất...', name: 'TaskBloc');
+        developer.log('Đợi Firebase hoàn tất...', name: 'TaskBloc');
         await Future.delayed(const Duration(milliseconds: 500));
         
         // Then reload tasks
-        developer.log('🔄 Tải lại danh sách công việc...', name: 'TaskBloc');
+        developer.log('Tải lại danh sách công việc...', name: 'TaskBloc');
         if (!emit.isDone) add(const LoadTasks(forceRefresh: true));
       },
     );
@@ -166,18 +166,18 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   }
 
   Future<void> _onToggleTask(ToggleTaskEvent event, Emitter<TaskState> emit) async {
-    developer.log('🔄 Đang chuyển trạng thái công việc: ${event.taskId}', name: 'TaskBloc');
+    developer.log('Đang chuyển trạng thái công việc: ${event.taskId}', name: 'TaskBloc');
     final result = await toggleTask(event.taskId);
     
     if (emit.isDone) return;
     
     await result.fold(
       (failure) async {
-        developer.log('❌ Lỗi khi chuyển trạng thái công việc: ${failure.message}', name: 'TaskBloc');
+        developer.log('Lỗi khi chuyển trạng thái công việc: ${failure.message}', name: 'TaskBloc');
         if (!emit.isDone) emit(TaskError(failure.message));
       },
       (_) async {
-        developer.log('✅ Đã chuyển trạng thái công việc thành công', name: 'TaskBloc');
+        developer.log('Đã chuyển trạng thái công việc thành công', name: 'TaskBloc');
         
         // Emit success state for immediate feedback
         if (!emit.isDone) emit(const TaskActionSuccess('Đã cập nhật trạng thái công việc'));
@@ -215,7 +215,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
         
         // Add slight delay for better UX, then reload
         await Future.delayed(const Duration(milliseconds: 200));
-        developer.log('🔄 Tải lại danh sách sau khi toggle...', name: 'TaskBloc');
+        developer.log('Tải lại danh sách sau khi toggle...', name: 'TaskBloc');
         if (!emit.isDone) add(const LoadTasks(forceRefresh: true));
       },
     );

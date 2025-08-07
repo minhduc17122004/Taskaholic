@@ -8,7 +8,6 @@ import 'category_state.dart';
 import '../../../presentation/dialogs/add_list_dialog.dart';
 import '../../../presentation/dialogs/edit_category_dialog.dart';
 import '../../../presentation/dialogs/delete_confirmation_dialog.dart';
-import '../../../screens/add_task_screen.dart';
 
 class CategoryPage extends StatefulWidget {
   const CategoryPage({super.key});

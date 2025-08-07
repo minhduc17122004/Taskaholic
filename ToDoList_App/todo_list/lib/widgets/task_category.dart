@@ -78,7 +78,7 @@ class TaskCategory extends StatelessWidget {
               showListName: showListName, // Truyền thông tin hiển thị tên danh sách xuống TaskItem
             ),
           ),
-        )).toList(),
+        )),
       ],
     );
   }
