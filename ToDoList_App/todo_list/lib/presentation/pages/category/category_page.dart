@@ -11,7 +11,7 @@ import '../../../presentation/dialogs/delete_confirmation_dialog.dart';
 import '../../../screens/add_task_screen.dart';
 
 class CategoryPage extends StatefulWidget {
-  const CategoryPage({Key? key}) : super(key: key);
+  const CategoryPage({super.key});
 
   @override
   State<CategoryPage> createState() => _CategoryPageState();
@@ -177,15 +177,8 @@ class _CategoryPageState extends State<CategoryPage> {
                             ],
                           ),
                           onTap: () {
-                            // Chuyển đến màn hình danh sách công việc của danh mục này
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AddTaskScreen(
-                                  initialList: category,
-                                ),
-                              ),
-                            );
+                            // Navigate back to Home screen with selected category
+                            Navigator.pop(context, category);
                           },
                         ),
                       );

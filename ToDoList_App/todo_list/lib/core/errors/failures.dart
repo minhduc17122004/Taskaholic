@@ -11,83 +11,72 @@ abstract class Failure extends Equatable {
 
 // General failures
 class ServerFailure extends Failure {
-  const ServerFailure({required String message}) : super(message: message);
+  const ServerFailure({required super.message});
 }
 
 class CacheFailure extends Failure {
-  const CacheFailure({required String message}) : super(message: message);
+  const CacheFailure({required super.message});
 }
 
 class NetworkFailure extends Failure {
-  const NetworkFailure({required String message}) : super(message: message);
+  const NetworkFailure({required super.message});
 }
 
 // Authentication failures
 class AuthFailure extends Failure {
-  const AuthFailure({required String message}) : super(message: message);
+  const AuthFailure({required super.message});
 }
 
 class UserNotFoundFailure extends AuthFailure {
-  const UserNotFoundFailure({String message = 'Không tìm thấy người dùng'}) 
-      : super(message: message);
+  const UserNotFoundFailure({super.message = 'Không tìm thấy người dùng'});
 }
 
 class WrongPasswordFailure extends AuthFailure {
-  const WrongPasswordFailure({String message = 'Mật khẩu không đúng'}) 
-      : super(message: message);
+  const WrongPasswordFailure({super.message = 'Mật khẩu không đúng'});
 }
 
 class EmailAlreadyInUseFailure extends AuthFailure {
-  const EmailAlreadyInUseFailure({String message = 'Email đã được sử dụng'}) 
-      : super(message: message);
+  const EmailAlreadyInUseFailure({super.message = 'Email đã được sử dụng'});
 }
 
 class WeakPasswordFailure extends AuthFailure {
-  const WeakPasswordFailure({String message = 'Mật khẩu quá yếu'}) 
-      : super(message: message);
+  const WeakPasswordFailure({super.message = 'Mật khẩu quá yếu'});
 }
 
 class InvalidEmailFailure extends AuthFailure {
-  const InvalidEmailFailure({String message = 'Email không hợp lệ'}) 
-      : super(message: message);
+  const InvalidEmailFailure({super.message = 'Email không hợp lệ'});
 }
 
 class UserNotLoggedInFailure extends AuthFailure {
-  const UserNotLoggedInFailure({String message = 'Người dùng chưa đăng nhập'}) 
-      : super(message: message);
+  const UserNotLoggedInFailure({super.message = 'Người dùng chưa đăng nhập'});
 }
 
 // Task failures
 class TaskFailure extends Failure {
-  const TaskFailure({required String message}) : super(message: message);
+  const TaskFailure({required super.message});
 }
 
 class TaskNotFoundFailure extends TaskFailure {
-  const TaskNotFoundFailure({String message = 'Không tìm thấy công việc'}) 
-      : super(message: message);
+  const TaskNotFoundFailure({super.message = 'Không tìm thấy công việc'});
 }
 
 class InvalidTaskDataFailure extends TaskFailure {
-  const InvalidTaskDataFailure({String message = 'Dữ liệu công việc không hợp lệ'}) 
-      : super(message: message);
+  const InvalidTaskDataFailure({super.message = 'Dữ liệu công việc không hợp lệ'});
 }
 
 // Category failures
 class CategoryFailure extends Failure {
-  const CategoryFailure({required String message}) : super(message: message);
+  const CategoryFailure({required super.message});
 }
 
 class CategoryNotFoundFailure extends CategoryFailure {
-  const CategoryNotFoundFailure({String message = 'Không tìm thấy danh mục'}) 
-      : super(message: message);
+  const CategoryNotFoundFailure({super.message = 'Không tìm thấy danh mục'});
 }
 
 class DuplicateCategoryFailure extends CategoryFailure {
-  const DuplicateCategoryFailure({String message = 'Danh mục đã tồn tại'}) 
-      : super(message: message);
+  const DuplicateCategoryFailure({super.message = 'Danh mục đã tồn tại'});
 }
 
 class SystemCategoryFailure extends CategoryFailure {
-  const SystemCategoryFailure({String message = 'Không thể thay đổi danh mục hệ thống'}) 
-      : super(message: message);
+  const SystemCategoryFailure({super.message = 'Không thể thay đổi danh mục hệ thống'});
 } 

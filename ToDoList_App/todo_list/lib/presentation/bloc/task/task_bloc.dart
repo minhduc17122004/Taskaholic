@@ -3,7 +3,6 @@ import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/services/notification_service.dart';
-import '../../../features/task/domain/entities/task_entity.dart' as entity;
 import '../../../domain/entities/task.dart';
 import '../../../domain/usecases/add_task.dart';
 import '../../../domain/usecases/delete_task.dart';
@@ -83,22 +82,31 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   }
 
   Future<void> _onAddTask(AddTaskEvent event, Emitter<TaskState> emit) async {
-    developer.log('Đang thêm công việc: ${event.task.title}', name: 'TaskBloc');
+    developer.log('🚀 Bắt đầu thêm công việc: ${event.task.title}', name: 'TaskBloc');
     final result = await addTask(event.task);
     
     if (emit.isDone) return;
     
     await result.fold(
       (failure) async {
-        developer.log('Lỗi khi thêm công việc: ${failure.message}', name: 'TaskBloc');
+        developer.log('❌ Lỗi khi thêm công việc: ${failure.message}', name: 'TaskBloc');
         if (!emit.isDone) emit(TaskError(failure.message));
       },
       (_) async {
-        developer.log('Đã thêm công việc thành công', name: 'TaskBloc');
+        developer.log('✅ Đã thêm công việc thành công', name: 'TaskBloc');
+        
+        // Emit success state first
+        if (!emit.isDone) emit(const TaskActionSuccess('Đã thêm công việc thành công'));
         
         // Lên lịch thông báo nếu task có thời gian
         _scheduleNotificationForTask(event.task);
         
+        // Add small delay to ensure Firebase write completion
+        developer.log('⏳ Đợi Firebase hoàn tất...', name: 'TaskBloc');
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // Then reload tasks
+        developer.log('🔄 Tải lại danh sách công việc...', name: 'TaskBloc');
         if (!emit.isDone) add(const LoadTasks(forceRefresh: true));
       },
     );
@@ -118,10 +126,14 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
       (_) async {
         developer.log('Đã cập nhật công việc thành công', name: 'TaskBloc');
         
+        // Emit success state first
+        if (!emit.isDone) emit(const TaskActionSuccess('Đã cập nhật công việc thành công'));
+        
         // Hủy thông báo cũ và lên lịch lại nếu cần
         await _notificationService.cancelNotification(int.parse(event.task.id));
         _scheduleNotificationForTask(event.task);
         
+        // Then reload tasks
         if (!emit.isDone) add(const LoadTasks(forceRefresh: true));
       },
     );
@@ -141,29 +153,36 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
       (_) async {
         developer.log('Đã xóa công việc thành công', name: 'TaskBloc');
         
+        // Emit success state first
+        if (!emit.isDone) emit(const TaskActionSuccess('Đã xóa công việc thành công'));
+        
         // Hủy thông báo cho task đã xóa
         await _notificationService.cancelNotification(int.parse(event.taskId));
         
+        // Then reload tasks
         if (!emit.isDone) add(const LoadTasks(forceRefresh: true));
       },
     );
   }
 
   Future<void> _onToggleTask(ToggleTaskEvent event, Emitter<TaskState> emit) async {
-    developer.log('Đang chuyển trạng thái công việc: ${event.taskId}', name: 'TaskBloc');
+    developer.log('🔄 Đang chuyển trạng thái công việc: ${event.taskId}', name: 'TaskBloc');
     final result = await toggleTask(event.taskId);
     
     if (emit.isDone) return;
     
     await result.fold(
       (failure) async {
-        developer.log('Lỗi khi chuyển trạng thái công việc: ${failure.message}', name: 'TaskBloc');
+        developer.log('❌ Lỗi khi chuyển trạng thái công việc: ${failure.message}', name: 'TaskBloc');
         if (!emit.isDone) emit(TaskError(failure.message));
       },
       (_) async {
-        developer.log('Đã chuyển trạng thái công việc thành công', name: 'TaskBloc');
+        developer.log('✅ Đã chuyển trạng thái công việc thành công', name: 'TaskBloc');
         
-        // Nếu task đã hoàn thành, hủy thông báo
+        // Emit success state for immediate feedback
+        if (!emit.isDone) emit(const TaskActionSuccess('Đã cập nhật trạng thái công việc'));
+        
+        // Handle notifications based on task completion status
         if (state is TasksLoaded) {
           final currentState = state as TasksLoaded;
           final task = currentState.tasks.firstWhere(
@@ -184,14 +203,19 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
           );
           
           if (!task.isCompleted) {
-            // Task đang được đánh dấu là hoàn thành, hủy thông báo
+            // Task is being marked as completed - cancel notification
+            developer.log('🔕 Hủy thông báo cho task đã hoàn thành', name: 'TaskBloc');
             await _notificationService.cancelNotification(int.parse(event.taskId));
           } else {
-            // Task đang được đánh dấu là chưa hoàn thành, lên lịch lại thông báo
+            // Task is being unmarked - reschedule notification
+            developer.log('🔔 Lên lịch lại thông báo cho task chưa hoàn thành', name: 'TaskBloc');
             _scheduleNotificationForTask(task);
           }
         }
         
+        // Add slight delay for better UX, then reload
+        await Future.delayed(const Duration(milliseconds: 200));
+        developer.log('🔄 Tải lại danh sách sau khi toggle...', name: 'TaskBloc');
         if (!emit.isDone) add(const LoadTasks(forceRefresh: true));
       },
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 import 'core/di/injection_container.dart' as di;
+import 'core/theme/app_theme.dart';
 import 'presentation/bloc/auth/auth_bloc.dart';
 import 'presentation/bloc/auth/auth_event.dart';
 import 'presentation/bloc/auth/auth_state.dart';
@@ -11,6 +12,8 @@ import 'presentation/bloc/task/task_event.dart';
 import 'presentation/pages/home/home_page.dart';
 import 'presentation/pages/home/home_bloc.dart';
 import 'presentation/pages/home/home_event.dart';
+import 'presentation/pages/category/category_bloc.dart';
+import 'presentation/pages/category/category_event.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -34,15 +37,16 @@ class App extends StatelessWidget {
         BlocProvider<HomeBloc>(
           create: (context) => di.sl<HomeBloc>()..add(const LoadHomeDataEvent()),
         ),
-        // TODO: Add other BlocProviders here
+        BlocProvider<CategoryBloc>(
+          create: (context) => di.sl<CategoryBloc>()..add(const LoadCategoriesEvent()),
+        ),
       ],
       child: MaterialApp(
         title: 'Todo List',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-          useMaterial3: true,
-        ),
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.dark, // Using dark theme as per the existing UI colors
         home: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
             if (state is AuthLoading) {

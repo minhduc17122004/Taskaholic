@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'app.dart';
 import 'core/di/injection_container.dart' as di;
 import 'core/services/notification_service.dart';
+import 'data/lists_data.dart';
 import 'firebase_options.dart';
 
 // Xử lý tin nhắn Firebase khi ứng dụng ở chế độ nền
@@ -42,6 +43,15 @@ void main() async {
   
   // Khởi tạo dịch vụ thông báo
   await NotificationService().init();
+  
+  // Khởi tạo hệ thống danh mục
+  try {
+    ListsData.initialize();
+    await ListsData.loadCustomCategories();
+    developer.log('Hệ thống danh mục đã được khởi tạo', name: 'Categories');
+  } catch (e) {
+    developer.log('Lỗi khởi tạo hệ thống danh mục: $e', name: 'Categories', error: e);
+  }
   
   runApp(const App());
 }

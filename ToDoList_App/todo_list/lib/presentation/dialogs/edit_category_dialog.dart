@@ -5,10 +5,10 @@ class EditCategoryDialog extends StatelessWidget {
   final Function(String) onSave;
 
   const EditCategoryDialog({
-    Key? key,
+    super.key,
     required this.controller,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   static Future<void> show({
     required BuildContext context,

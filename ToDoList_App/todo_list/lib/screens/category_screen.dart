@@ -9,10 +9,14 @@ import '../presentation/dialogs/add_list_dialog.dart';
 import '../presentation/dialogs/edit_category_dialog.dart';
 import '../presentation/dialogs/delete_confirmation_dialog.dart';
 import 'add_task_screen.dart';
-import 'debug_screen.dart';
 
 class CategoryScreen extends StatefulWidget {
-  const CategoryScreen({Key? key}) : super(key: key);
+  final Function(String)? onCategoryTap;
+  
+  const CategoryScreen({
+    super.key,
+    this.onCategoryTap,
+  });
 
   @override
   State<CategoryScreen> createState() => _CategoryScreenState();
@@ -178,6 +182,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
                             ],
                           ),
                           onTap: () {
+                            // Use callback if provided, otherwise navigate to AddTaskScreen
+                            if (widget.onCategoryTap != null) {
+                              widget.onCategoryTap!(category);
+                            } else {
                             // Chuyển đến màn hình danh sách công việc của danh mục này
                             Navigator.push(
                               context,
@@ -187,6 +195,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                 ),
                               ),
                             );
+                            }
                           },
                         ),
                       );

@@ -5,10 +5,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'data/datasources/auth_remote_datasource.dart';
 import 'data/datasources/local/task_local_datasource.dart';
 import 'data/datasources/remote/task_remote_datasource.dart';
+import 'data/datasources/local/category_local_datasource.dart';
+import 'data/datasources/remote/category_remote_datasource.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'data/repositories/task_repository_impl.dart';
+import 'data/repositories/category_repository_impl.dart';
 import 'domain/repositories/auth_repository.dart';
 import 'domain/repositories/task_repository.dart';
+import 'domain/repositories/category_repository.dart';
 import 'domain/usecases/add_task.dart';
 import 'domain/usecases/delete_task.dart';
 import 'domain/usecases/get_completed_tasks.dart';
@@ -24,6 +28,7 @@ import 'presentation/bloc/task/task_bloc.dart';
 import 'presentation/pages/category/category_bloc.dart';
 import 'presentation/pages/home/home_bloc.dart';
 import 'presentation/pages/add_task/add_task_bloc.dart';
+import 'core/services/category_service.dart';
 
 final sl = GetIt.instance;
 
@@ -49,9 +54,12 @@ Future<void> init() async {
   );
   
   sl.registerFactory(
-    () => CategoryBloc(),
+    () => CategoryBloc(
+      categoryRepository: sl(),
+      categoryService: sl(),
+    ),
   );
-  
+    
   sl.registerFactory(
     () => HomeBloc(),
   );
@@ -92,6 +100,13 @@ Future<void> init() async {
     ),
   );
 
+  sl.registerLazySingleton<CategoryRepository>(
+    () => CategoryRepositoryImpl(
+      localDataSource: sl(),
+      remoteDataSource: sl(),
+    ),
+  );
+
   // Data sources
   sl.registerLazySingleton<TaskLocalDataSource>(
     () => TaskLocalDataSourceImpl(sharedPreferences: sl()),
@@ -107,9 +122,23 @@ Future<void> init() async {
     () => AuthRemoteDataSourceImpl(firebaseAuth: sl()),
   );
 
+  sl.registerLazySingleton<CategoryLocalDataSource>(
+    () => CategoryLocalDataSourceImpl(
+      sharedPreferences: sl(),
+    ),
+  );
+  
+  sl.registerLazySingleton<CategoryRemoteDataSource>(
+    () => CategoryRemoteDataSourceImpl(
+      firestore: sl(),
+      auth: sl(),
+    ),
+  );
+
   // External
   final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => sharedPreferences);
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
   sl.registerLazySingleton(() => FirebaseAuth.instance);
+  sl.registerLazySingleton(() => CategoryService());
 } 

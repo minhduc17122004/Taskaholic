@@ -4,9 +4,9 @@ class DeleteConfirmationDialog extends StatelessWidget {
   final VoidCallback onConfirm;
 
   const DeleteConfirmationDialog({
-    Key? key,
+    super.key,
     required this.onConfirm,
-  }) : super(key: key);
+  });
 
   static Future<void> show({
     required BuildContext context,

@@ -157,13 +157,11 @@ class CategoryLocalDataSourceImpl implements CategoryLocalDataSource {
   Future<CategoryModel?> getCategoryById(String id) async {
     try {
       final categories = await getCategories();
-      return categories.firstWhere(
-        (category) => category.id == id,
-        orElse: () => throw Exception('Không tìm thấy danh mục'),
-      );
+      final matches = categories.where((category) => category.id == id);
+      return matches.isNotEmpty ? matches.first : null;
     } catch (e) {
       developer.log('Lỗi khi lấy danh mục theo ID: $e', name: 'CategoryLocalDataSource', error: e);
-      rethrow;
+      return null;
     }
   }
   

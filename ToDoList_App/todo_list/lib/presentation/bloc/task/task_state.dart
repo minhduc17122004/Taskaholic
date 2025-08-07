@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import '../../../features/task/domain/entities/task_entity.dart' as entity;
 import '../../../domain/entities/task.dart';
 
 abstract class TaskState extends Equatable {
@@ -101,6 +100,15 @@ class TaskError extends TaskState {
   final String message;
 
   const TaskError(this.message);
+
+  @override
+  List<Object> get props => [message];
+}
+
+class TaskActionSuccess extends TaskState {
+  final String message;
+
+  const TaskActionSuccess(this.message);
 
   @override
   List<Object> get props => [message];

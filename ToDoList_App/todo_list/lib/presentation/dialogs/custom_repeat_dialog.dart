@@ -4,9 +4,9 @@ class CustomRepeatDialog extends StatefulWidget {
   final Function(int, String) onRepeatSet;
 
   const CustomRepeatDialog({
-    Key? key,
+    super.key,
     required this.onRepeatSet,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomRepeatDialog> createState() => _CustomRepeatDialogState();

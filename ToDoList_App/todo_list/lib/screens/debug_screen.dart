@@ -1,10 +1,13 @@
-import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../core/di/injection_container.dart' as di;
+import '../core/services/category_service.dart';
+import '../data/lists_data.dart';
+import 'add_task_screen.dart';
 
 class DebugScreen extends StatefulWidget {
-  const DebugScreen({Key? key}) : super(key: key);
+  const DebugScreen({super.key});
 
   @override
   State<DebugScreen> createState() => _DebugScreenState();
@@ -16,7 +19,7 @@ class _DebugScreenState extends State<DebugScreen> {
   
   String _authStatus = 'Đang kiểm tra...';
   String _firestoreStatus = 'Đang kiểm tra...';
-  List<String> _logs = [];
+  final List<String> _logs = [];
   
   @override
   void initState() {
@@ -154,6 +157,144 @@ class _DebugScreenState extends State<DebugScreen> {
       _addLog('Lỗi khi lấy danh sách tasks: $e');
     }
   }
+
+  Widget _buildDebugSection() {
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Debug Tests',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            
+            // Test FAB Navigation
+            ElevatedButton(
+              onPressed: _testFABNavigation,
+              child: const Text('Test FAB Navigation'),
+            ),
+            const SizedBox(height: 8),
+            
+            // Test ListsData
+            ElevatedButton(
+              onPressed: _testListsData,
+              child: const Text('Test ListsData Methods'),
+            ),
+            const SizedBox(height: 8),
+            
+            // Test CategoryService
+            ElevatedButton(
+              onPressed: _testCategoryService,
+              child: const Text('Test CategoryService'),
+            ),
+            const SizedBox(height: 16),
+            
+            if (_debugOutput.isNotEmpty) ...[
+              const Text(
+                'Debug Output:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _debugOutput,
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _debugOutput = '';
+
+  void _testFABNavigation() {
+    setState(() {
+      _debugOutput = 'Testing FAB Navigation...\n';
+    });
+    
+    try {
+      // Test direct navigation to AddTaskScreen
+      Navigator.of(context, rootNavigator: true).push(
+        MaterialPageRoute(
+          builder: (context) => const AddTaskScreen(initialList: 'Công việc'),
+        ),
+      ).then((_) {
+        setState(() {
+          _debugOutput += 'Navigation completed successfully!\n';
+        });
+      }).catchError((error) {
+        setState(() {
+          _debugOutput += 'Navigation error: $error\n';
+        });
+      });
+      
+      setState(() {
+        _debugOutput += 'Navigation call initiated...\n';
+      });
+    } catch (e) {
+      setState(() {
+        _debugOutput += 'Exception during navigation: $e\n';
+      });
+    }
+  }
+
+  void _testListsData() {
+    setState(() {
+      _debugOutput = 'Testing ListsData methods...\n';
+    });
+    
+    try {
+      final categories = ListsData.getAddTaskListOptions();
+      _debugOutput += 'getAddTaskListOptions(): $categories\n';
+      
+      final isValid = ListsData.isValidCategoryForAssignment('Công việc');
+      _debugOutput += 'isValidCategoryForAssignment("Công việc"): $isValid\n';
+      
+      final allCategories = ListsData.getAllDisplayCategories();
+      _debugOutput += 'getAllDisplayCategories(): $allCategories\n';
+      
+      setState(() {});
+    } catch (e) {
+      setState(() {
+        _debugOutput += 'Error testing ListsData: $e\n';
+      });
+    }
+  }
+
+  void _testCategoryService() {
+    setState(() {
+      _debugOutput = 'Testing CategoryService...\n';
+    });
+    
+    try {
+      final categoryService = di.sl<CategoryService>();
+      
+      final selectableCategories = categoryService.getSelectableCategoryNames();
+      _debugOutput += 'getSelectableCategoryNames(): $selectableCategories\n';
+      
+      final isValid = categoryService.isValidCategoryForAssignment('Công việc');
+      _debugOutput += 'isValidCategoryForAssignment("Công việc"): $isValid\n';
+      
+      setState(() {});
+    } catch (e) {
+      setState(() {
+        _debugOutput += 'Error testing CategoryService: $e\n';
+      });
+    }
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -255,6 +396,7 @@ class _DebugScreenState extends State<DebugScreen> {
                 ),
               ],
             ),
+            _buildDebugSection(),
             
             // Logs
             const SizedBox(height: 24),

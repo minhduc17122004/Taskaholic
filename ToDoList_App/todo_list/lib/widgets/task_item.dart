@@ -12,13 +12,13 @@ class TaskItem extends StatelessWidget {
   showOriginalList; // Cờ xác định có hiển thị danh sách gốc hay không
 
   const TaskItem({
-    Key? key,
+    super.key,
     required this.task,
     required this.onCheckboxChanged,
     this.showListName = false, // Mặc định là không hiển thị tên danh sách
     this.showDateTime = true, // Mặc định là hiển thị thời gian
     this.showOriginalList = false, // Mặc định là không hiển thị danh sách gốc
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +57,7 @@ class TaskItem extends StatelessWidget {
                   child: Checkbox(
                     value: task.isCompleted,
                     onChanged: onCheckboxChanged,
-                    fillColor: MaterialStateProperty.all(Colors.transparent),
+                    fillColor: WidgetStateProperty .all(Colors.transparent),
                     checkColor: Colors.white,
                     side: const BorderSide(color: Colors.white, width: 2),
                     shape: RoundedRectangleBorder(

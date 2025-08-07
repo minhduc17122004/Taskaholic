@@ -5,10 +5,10 @@ class BackConfirmationDialog extends StatelessWidget {
   final VoidCallback onConfirm;
 
   const BackConfirmationDialog({
-    Key? key,
+    super.key,
     required this.actionType,
     required this.onConfirm,
-  }) : super(key: key);
+  });
 
   static Future<void> show({
     required BuildContext context,

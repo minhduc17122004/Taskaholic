@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../presentation/bloc/auth/auth_bloc.dart';
 import '../presentation/bloc/auth/auth_event.dart';
 import '../presentation/bloc/auth/auth_state.dart';
-import 'home_screen.dart';
+import '../presentation/pages/home/home_page.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -76,7 +76,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         listener: (context, state) {
           if (state is Authenticated) {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const HomeScreen()),
+              MaterialPageRoute(builder: (_) => const HomePage()),
             );
           } else if (state is AuthError) {
             // Log lỗi chi tiết ra console

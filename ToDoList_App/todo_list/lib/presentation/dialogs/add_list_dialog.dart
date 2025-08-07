@@ -6,10 +6,10 @@ class AddListDialog extends StatelessWidget {
   final Function(String) onListAdded;
 
   const AddListDialog({
-    Key? key,
+    super.key,
     required this.controller,
     required this.onListAdded,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

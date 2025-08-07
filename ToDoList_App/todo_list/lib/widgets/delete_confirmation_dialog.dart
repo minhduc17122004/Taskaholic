@@ -8,13 +8,13 @@ class DeleteConfirmationDialog extends StatelessWidget {
   final VoidCallback onConfirm; // Hàm xử lý khi xác nhận xóa
   
   const DeleteConfirmationDialog({
-    Key? key,
+    super.key,
     this.title = 'Xác nhận xóa', // Giá trị mặc định
     this.content = 'Bạn có chắc chắn muốn xóa?', // Giá trị mặc định
     this.cancelText = 'Hủy', // Giá trị mặc định
     this.confirmText = 'Xóa', // Giá trị mặc định
     required this.onConfirm, 
-  }) : super(key: key);
+  });
   
   /// Phương thức tĩnh để hiển thị dialog xác nhận xóa
   /// 

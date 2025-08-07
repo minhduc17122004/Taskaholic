@@ -2,16 +2,11 @@ import '../../domain/entities/category_entity.dart';
 
 class CategoryModel extends CategoryEntity {
   const CategoryModel({
-    required String id,
-    required String name,
-    int taskCount = 0,
-    bool isSystem = false,
-  }) : super(
-          id: id,
-          name: name,
-          taskCount: taskCount,
-          isSystem: isSystem,
-        );
+    required super.id,
+    required super.name,
+    super.taskCount,
+    super.isSystem,
+  });
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(

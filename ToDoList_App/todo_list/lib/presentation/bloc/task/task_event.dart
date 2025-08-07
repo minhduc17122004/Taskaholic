@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import '../../../features/task/domain/entities/task_entity.dart' as entity;
 import '../../../domain/entities/task.dart';
 
 abstract class TaskEvent extends Equatable {

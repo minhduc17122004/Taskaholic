@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../domain/entities/task_entity.dart';
 import '../models/task_model.dart';
 
 abstract class TaskLocalDataSource {

@@ -6,10 +6,10 @@ class CompletedTasksList extends StatelessWidget {
   final Function(Task) buildTaskItem;
 
   const CompletedTasksList({
-    Key? key,
+    super.key,
     required this.tasksByList,
     required this.buildTaskItem,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

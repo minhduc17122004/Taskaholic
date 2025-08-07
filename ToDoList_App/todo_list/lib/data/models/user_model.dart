@@ -2,16 +2,11 @@ import '../../domain/entities/user.dart';
 
 class UserModel extends User {
   const UserModel({
-    required String id,
-    required String email,
-    String? displayName,
-    required bool isEmailVerified,
-  }) : super(
-          id: id,
-          email: email,
-          displayName: displayName,
-          isEmailVerified: isEmailVerified,
-        );
+    required super.id,
+    required super.email,
+    super.displayName,
+    required super.isEmailVerified,
+  });
 
   factory UserModel.fromFirebase(dynamic firebaseUser) {
     return UserModel(

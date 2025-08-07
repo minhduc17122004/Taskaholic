@@ -42,12 +42,17 @@ import '../../presentation/bloc/auth/auth_bloc.dart';
 
 // Feature: Category
 import '../../presentation/pages/category/category_bloc.dart';
+import '../../domain/repositories/category_repository.dart';
+import '../../data/repositories/category_repository_impl.dart';
+import '../../data/datasources/local/category_local_datasource.dart';
+import '../../data/datasources/remote/category_remote_datasource.dart';
 
 // Home
 import '../../presentation/pages/home/home_bloc.dart';
 
 // Core
 import '../services/notification_service.dart';
+import '../services/category_service.dart';
 
 final sl = GetIt.instance;
 
@@ -58,6 +63,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => NotificationService());
+  sl.registerLazySingleton(() => CategoryService());
 
   // Feature: Task
   // Bloc
@@ -179,5 +185,33 @@ Future<void> init() async {
   sl.registerFactory(() => HomeBloc());
 
   // Feature: Category
-  sl.registerFactory(() => CategoryBloc());
+  // Bloc
+  sl.registerFactory(
+    () => CategoryBloc(
+      categoryRepository: sl(),
+      categoryService: sl(),
+    ),
+  );
+
+  // Repository
+  sl.registerLazySingleton<CategoryRepository>(
+    () => CategoryRepositoryImpl(
+      localDataSource: sl(),
+      remoteDataSource: sl(),
+    ),
+  );
+
+  // Data sources
+  sl.registerLazySingleton<CategoryLocalDataSource>(
+    () => CategoryLocalDataSourceImpl(
+      sharedPreferences: sl(),
+    ),
+  );
+  
+  sl.registerLazySingleton<CategoryRemoteDataSource>(
+    () => CategoryRemoteDataSourceImpl(
+      firestore: sl(),
+      auth: sl(),
+    ),
+  );
 } 

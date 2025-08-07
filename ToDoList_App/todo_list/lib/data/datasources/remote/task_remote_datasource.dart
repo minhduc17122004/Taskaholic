@@ -6,7 +6,7 @@ import '../../models/task_model.dart';
 abstract class TaskRemoteDataSource {
   Future<List<TaskModel>> getTasks();
   Future<List<TaskModel>> getCompletedTasks();
-  Future<void> addTask(TaskModel task);
+  Future<DocumentReference> addTask(TaskModel task);
   Future<void> updateTask(TaskModel task);
   Future<void> deleteTask(String id);
 }
@@ -88,12 +88,12 @@ class TaskRemoteDataSourceImpl implements TaskRemoteDataSource {
   }
 
   @override
-  Future<void> addTask(TaskModel task) async {
+  Future<DocumentReference> addTask(TaskModel task) async {
     try {
       // Kiểm tra người dùng đã đăng nhập chưa
       if (currentUserId == null) {
         developer.log('Không có người dùng đăng nhập, không thể thêm task', name: 'Firestore');
-        return;
+        throw Exception('Không có người dùng đăng nhập');
       }
       
       developer.log('Đang thêm task: ${task.title} cho người dùng: $currentUserId', name: 'Firestore');
@@ -115,6 +115,8 @@ class TaskRemoteDataSourceImpl implements TaskRemoteDataSource {
       } else {
         developer.log('Không thể xác nhận task đã được thêm', name: 'Firestore');
       }
+      
+      return docRef;
     } catch (e) {
       developer.log('Lỗi khi thêm task: $e', name: 'Firestore', error: e);
       throw Exception('Không thể thêm task: $e');

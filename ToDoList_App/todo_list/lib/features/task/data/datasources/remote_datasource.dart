@@ -1,7 +1,6 @@
 import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../domain/entities/task_entity.dart';
 import '../models/task_model.dart';
 
 abstract class TaskRemoteDataSource {

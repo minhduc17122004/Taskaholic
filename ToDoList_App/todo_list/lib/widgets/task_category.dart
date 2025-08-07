@@ -11,14 +11,14 @@ class TaskCategory extends StatelessWidget {
   final bool showListName; // Cờ xác định có hiển thị tên danh sách hay không
 
   const TaskCategory({
-    Key? key,
+    super.key,
     required this.categoryName,
     required this.tasks,
     required this.onTaskToggle,
     required this.onTaskDelete,
     this.titleColor = Colors.white, // Màu mặc định cho tiêu đề là trắng
     this.showListName = false, // Mặc định không hiển thị tên danh sách
-  }) : super(key: key);
+  });
 
   // Thêm phương thức static để có thể sử dụng mà không cần tạo instance
   static Color getCategoryColor(String category) {

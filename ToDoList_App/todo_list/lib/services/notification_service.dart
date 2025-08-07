@@ -1,5 +1,4 @@
 import 'dart:developer' as developer;
-import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -14,6 +13,11 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = 
       FlutterLocalNotificationsPlugin();
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  
+  // State management for permission requests
+  bool _isRequestingPermissions = false;
+  bool _permissionsRequested = false;
+  AuthorizationStatus? _lastAuthorizationStatus;
   
   // Khởi tạo thông báo
   Future<void> init() async {
@@ -57,9 +61,24 @@ class NotificationService {
     // Thêm xử lý khi người dùng nhấn vào thông báo tại đây
   }
   
-  // Yêu cầu quyền thông báo
+  // Yêu cầu quyền thông báo với bảo vệ chống trùng lặp
   Future<void> requestNotificationPermissions() async {
-    developer.log('Yêu cầu quyền thông báo', name: 'NotificationService');
+    // Kiểm tra nếu đang yêu cầu quyền
+    if (_isRequestingPermissions) {
+      developer.log('Đang yêu cầu quyền thông báo, bỏ qua yêu cầu mới', name: 'NotificationService');
+      return;
+    }
+    
+    // Kiểm tra nếu đã yêu cầu quyền trước đó
+    if (_permissionsRequested && _lastAuthorizationStatus != null) {
+      developer.log('Quyền thông báo đã được yêu cầu trước đó: $_lastAuthorizationStatus', name: 'NotificationService');
+      return;
+    }
+    
+    _isRequestingPermissions = true;
+    
+    try {
+      developer.log('Bắt đầu yêu cầu quyền thông báo', name: 'NotificationService');
     
     // Yêu cầu quyền cho Firebase Messaging
     NotificationSettings settings = await _firebaseMessaging.requestPermission(
@@ -68,11 +87,20 @@ class NotificationService {
       sound: true,
       provisional: false,
     );
+      
+      _lastAuthorizationStatus = settings.authorizationStatus;
+      _permissionsRequested = true;
     
     developer.log(
       'Trạng thái quyền thông báo Firebase: ${settings.authorizationStatus}',
       name: 'NotificationService',
     );
+    } catch (e) {
+      developer.log('Lỗi khi yêu cầu quyền Firebase: $e', name: 'NotificationService');
+      // Không đặt _permissionsRequested = true nếu có lỗi, để có thể thử lại
+    } finally {
+      _isRequestingPermissions = false;
+    }
     
     // Yêu cầu quyền cho Local Notifications trên iOS
     try {
@@ -195,6 +223,32 @@ class NotificationService {
     developer.log('Hủy tất cả thông báo', name: 'NotificationService');
     await _flutterLocalNotificationsPlugin.cancelAll();
   }
+  
+  // Kiểm tra trạng thái quyền thông báo hiện tại mà không yêu cầu
+  Future<AuthorizationStatus> checkNotificationPermissionStatus() async {
+    try {
+      NotificationSettings settings = await _firebaseMessaging.getNotificationSettings();
+      _lastAuthorizationStatus = settings.authorizationStatus;
+      developer.log('Trạng thái quyền hiện tại: ${settings.authorizationStatus}', name: 'NotificationService');
+      return settings.authorizationStatus;
+    } catch (e) {
+      developer.log('Lỗi khi kiểm tra trạng thái quyền: $e', name: 'NotificationService');
+      return AuthorizationStatus.notDetermined;
+    }
+  }
+  
+  // Reset trạng thái permission (dùng cho testing hoặc khi cần yêu cầu lại)
+  void resetPermissionState() {
+    _isRequestingPermissions = false;
+    _permissionsRequested = false;
+    _lastAuthorizationStatus = null;
+    developer.log('Đã reset trạng thái quyền thông báo', name: 'NotificationService');
+  }
+  
+  // Getter để kiểm tra trạng thái
+  bool get isRequestingPermissions => _isRequestingPermissions;
+  bool get permissionsRequested => _permissionsRequested;
+  AuthorizationStatus? get lastAuthorizationStatus => _lastAuthorizationStatus;
 }
 
 // Xử lý thông báo khi ứng dụng đang ở nền

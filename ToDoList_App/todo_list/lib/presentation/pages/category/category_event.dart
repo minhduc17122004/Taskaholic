@@ -38,3 +38,12 @@ class EditCategoryEvent extends CategoryEvent {
   @override
   List<Object?> get props => [oldName, newName];
 } 
+
+class SearchCategoriesEvent extends CategoryEvent {
+  final String query;
+
+  const SearchCategoriesEvent(this.query);
+
+  @override
+  List<Object?> get props => [query];
+} 
