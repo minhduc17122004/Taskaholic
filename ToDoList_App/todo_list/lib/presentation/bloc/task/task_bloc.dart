@@ -130,7 +130,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
         if (!emit.isDone) emit(const TaskActionSuccess('Đã cập nhật công việc thành công'));
         
         // Hủy thông báo cũ và lên lịch lại nếu cần
-        await _notificationService.cancelNotification(int.parse(event.task.id));
+        await _notificationService.cancelNotification(_getNotificationId(event.task.id));
         _scheduleNotificationForTask(event.task);
         
         // Then reload tasks
@@ -221,6 +221,14 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     );
   }
   
+  // Chuyển đổi task ID thành notification ID hợp lệ (32-bit integer)
+  int _getNotificationId(String taskId) {
+    // Tạo hash code từ task ID và đảm bảo nó nằm trong phạm vi 32-bit integer
+    int hash = taskId.hashCode;
+    // Đảm bảo giá trị dương và trong phạm vi 32-bit
+    return hash.abs() % 2147483647; // 2^31 - 1
+  }
+
   // Hàm lên lịch thông báo cho task
   void _scheduleNotificationForTask(Task task) {
     try {
@@ -239,7 +247,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
           developer.log('Lên lịch thông báo cho task: ${task.title} vào lúc $taskTime', name: 'TaskBloc');
           
           _notificationService.scheduleTaskNotification(
-            id: int.parse(task.id),
+            id: _getNotificationId(task.id),
             title: 'Nhắc nhở: ${task.title}',
             body: 'Đến hạn: ${task.getFormattedDate()} lúc ${task.time.hour}:${task.time.minute.toString().padLeft(2, '0')}',
             scheduledDate: taskTime,

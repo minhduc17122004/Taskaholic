@@ -28,6 +28,14 @@ class _NotificationsBottomSheetState extends State<NotificationsBottomSheet> {
       _notificationsEnabled = settings.authorizationStatus == AuthorizationStatus.authorized;
     });
   }
+
+  // Chuyển đổi task ID thành notification ID hợp lệ (32-bit integer)
+  int _getNotificationId(String taskId) {
+    // Tạo hash code từ task ID và đảm bảo nó nằm trong phạm vi 32-bit integer
+    int hash = taskId.hashCode;
+    // Đảm bảo giá trị dương và trong phạm vi 32-bit
+    return hash.abs() % 2147483647; // 2^31 - 1
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -186,7 +194,7 @@ class _NotificationsBottomSheetState extends State<NotificationsBottomSheet> {
                           icon: const Icon(Icons.notifications_active, color: Colors.white),
                           onPressed: () {
                             // Hủy thông báo cho task này
-                            NotificationService().cancelNotification(int.parse(task.id));
+                            NotificationService().cancelNotification(_getNotificationId(task.id));
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Đã tắt thông báo cho công việc này'),

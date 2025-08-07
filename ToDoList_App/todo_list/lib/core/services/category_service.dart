@@ -34,10 +34,10 @@ class CategoryService {
     return getSelectableCategories().map((cat) => cat.name).toList();
   }
 
-  /// Add a custom category
+  /// Add a custom category (insert at beginning)
   void addCustomCategory(CategoryInfo category) {
     if (!_customCategories.any((cat) => cat.id == category.id)) {
-      _customCategories.add(category);
+      _customCategories.insert(0, category); // Insert at beginning instead of end
       developer.log('Added custom category: ${category.name}', name: 'CategoryService');
     }
   }

@@ -81,14 +81,13 @@ class NotificationService {
         iOS: iOSPlatformChannelSpecifics,
       );
       
-      // Lên lịch thông báo
-      await _flutterLocalNotificationsPlugin.zonedSchedule(
-        id,
-        title,
-        body,
-        tz.TZDateTime.from(scheduledDate, tz.local),
-        platformChannelSpecifics,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      // Lên lịch thông báo với fallback strategy
+      await _scheduleNotificationSafely(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: scheduledDate,
+        platformChannelSpecifics: platformChannelSpecifics,
         payload: payload,
       );
       
@@ -102,6 +101,67 @@ class NotificationService {
         name: 'NotificationService',
         error: e,
       );
+    }
+  }
+
+  // Hàm helper để lên lịch thông báo an toàn với fallback
+  Future<void> _scheduleNotificationSafely({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDate,
+    required NotificationDetails platformChannelSpecifics,
+    String? payload,
+  }) async {
+    try {
+      // Thử sử dụng inexactAllowWhileIdle trước (an toàn hơn)
+      await _flutterLocalNotificationsPlugin.zonedSchedule(
+        id,
+        title,
+        body,
+        tz.TZDateTime.from(scheduledDate, tz.local),
+        platformChannelSpecifics,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        payload: payload,
+      );
+      
+      developer.log(
+        'Successfully scheduled notification with inexact timing',
+        name: 'NotificationService',
+      );
+    } catch (e) {
+      // Nếu vẫn lỗi, thử với alarmClock làm fallback
+      try {
+        developer.log(
+          'Inexact scheduling failed, trying alarmClock: $e',
+          name: 'NotificationService',
+        );
+        
+        await _flutterLocalNotificationsPlugin.zonedSchedule(
+          id,
+          title,
+          body,
+          tz.TZDateTime.from(scheduledDate, tz.local),
+          platformChannelSpecifics,
+          androidScheduleMode: AndroidScheduleMode.alarmClock,
+          payload: payload,
+        );
+        
+        developer.log(
+          'Successfully scheduled notification with alarmClock',
+          name: 'NotificationService',
+        );
+      } catch (e2) {
+        // Nếu tất cả đều thất bại, log lỗi nhưng không crash app
+        developer.log(
+          'All notification scheduling methods failed: $e2',
+          name: 'NotificationService',
+          error: e2,
+        );
+        
+        // Có thể thêm logic để hiển thị thông báo cho user
+        throw Exception('Không thể lên lịch thông báo. Vui lòng kiểm tra quyền ứng dụng.');
+      }
     }
   }
 

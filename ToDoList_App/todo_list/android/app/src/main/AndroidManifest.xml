@@ -13,6 +13,8 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- Quyền đặt báo thức -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Alternative permission cho exact alarms trên Android 12+ -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <application
         android:label="todo_list"

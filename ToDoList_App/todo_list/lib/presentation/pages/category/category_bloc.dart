@@ -88,16 +88,21 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
         },
         (categories) async {
           // Filter out system categories for display
-          final displayCategories = categories
-              .where((cat) => !cat.isSystem && cat.name != CategoryConstants.completedCategoryName)
+          final customCategories = categories
+              .where((cat) => !cat.isSystem && cat.name != CategoryConstants.completedCategoryName && !cat.isDefault)
               .map((cat) => cat.name)
               .toList();
           
-          // Add default categories that might not be in Firebase yet
+          // Get default categories
           final defaultCategoryNames = CategoryConstants.getSelectableCategories()
               .map((cat) => cat.name)
               .toList();
           
+          // Combine categories with custom categories first (at the top)
+          final displayCategories = <String>[];
+          displayCategories.addAll(customCategories); // Custom categories first
+          
+          // Add default categories that might not be in Firebase yet
           for (final defaultName in defaultCategoryNames) {
             if (!displayCategories.contains(defaultName)) {
               displayCategories.add(defaultName);
@@ -153,10 +158,10 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
       // Emit loading state
       _safeEmit(CategoryLoading(), emit);
       
-      // Optimistic update: Add category to current list immediately
+      // Optimistic update: Add category to current list immediately (at the beginning)
       if (currentState is CategoriesLoaded) {
         final updatedCategories = List<String>.from(currentState.categories);
-        updatedCategories.add(event.name.trim());
+        updatedCategories.insert(0, event.name.trim()); // Insert at beginning instead of end
         _safeEmit(CategoriesLoaded(updatedCategories), emit);
       }
       

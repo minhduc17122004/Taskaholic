@@ -271,7 +271,7 @@ class _EnhancedCategoryScreenState extends State<EnhancedCategoryScreen> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         content: Text(
-          'Bạn có chắc chắn muốn xóa danh mục "$category"?\n\nTất cả công việc trong danh mục này sẽ được chuyển về "Mặc định".',
+          'Bạn có chắc chắn muốn xóa danh mục "$category"?',
           style: const TextStyle(color: Colors.white70),
         ),
         actions: [

@@ -104,10 +104,10 @@ class ListsData {
     
     _categoryService.addCustomCategory(categoryInfo);
     
-    // Update legacy lists for backward compatibility
+    // Update legacy lists for backward compatibility (add to beginning)
     if (!lists.contains(name)) {
-      lists.add(name);
-      listOptions.add(name);
+      lists.insert(0, name); // Insert at beginning instead of end
+      listOptions.insert(0, name); // Insert at beginning instead of end
     }
   }
   
@@ -173,10 +173,10 @@ class ListsData {
           
           _categoryService.addCustomCategory(categoryInfo);
           
-          // Update legacy lists
+          // Update legacy lists (add to beginning)
           if (!lists.contains(categoryInfo.name)) {
-            lists.add(categoryInfo.name);
-            listOptions.add(categoryInfo.name);
+            lists.insert(0, categoryInfo.name); // Insert at beginning instead of end
+            listOptions.insert(0, categoryInfo.name); // Insert at beginning instead of end
           }
         }
         debugPrint('Successfully loaded ${categoriesJson.length} custom categories');
