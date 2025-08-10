@@ -78,9 +78,7 @@ class TasksLoaded extends TaskState {
     for (var task in filteredTasks) {
       final taskDay = DateTime(task.date.year, task.date.month, task.date.day);
       
-      if (task.list == 'Mặc định') {
-        categorizedTasks['Không có ngày']!.add(task);
-      } else if (taskDay.isBefore(today)) {
+      if (taskDay.isBefore(today)) {
         categorizedTasks['Quá hạn']!.add(task);
       } else if (taskDay.isAtSameMomentAs(today)) {
         categorizedTasks['Hôm nay']!.add(task);

@@ -246,12 +246,6 @@ class CategoryRemoteDataSourceImpl implements CategoryRemoteDataSource {
         taskCount: 0,
         isSystem: true,
       ),
-      const CategoryModel(
-        id: 'default',
-        name: 'Mặc định',
-        taskCount: 0,
-        isSystem: true,
-      ),
     ];
   }
 } 

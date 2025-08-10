@@ -13,14 +13,12 @@ class ListsData {
   static final List<String> lists = [
     CategoryConstants.allTasksCategoryName,
     'Công việc',
-    'Mặc định',
   ];
   
   // Legacy list options for backward compatibility
   static final List<String> listOptions = [
     CategoryConstants.allTasksCategoryName,
     'Công việc',
-    'Mặc định',
   ];
   
   /// Get all available categories for display (includes system categories like "All Tasks")
@@ -38,34 +36,33 @@ class ListsData {
     try {
       final selectableCategories = getSelectableCategories();
       
-      // Ensure backward compatibility by including legacy categories
-      final categories = <String>[];
-      categories.addAll(selectableCategories);
+      // Use LinkedHashSet to maintain order and ensure uniqueness
+      final uniqueCategories = <String>{};
       
-      // Đảm bảo luôn có các danh mục mặc định
-      if (!categories.contains('Công việc')) {
-        categories.add('Công việc');
-      }
-      if (!categories.contains('Mặc định')) {
-        categories.add('Mặc định');
+      // Add selectable categories first (this includes both default and custom)
+      uniqueCategories.addAll(selectableCategories);
+      
+      // Ensure base default category 'Công việc'
+      if (!uniqueCategories.contains('Công việc')) {
+        uniqueCategories.add('Công việc');
       }
       
-      // Remove duplicates and system categories
-      final uniqueCategories = categories.toSet().toList();
+      // Remove system categories
       uniqueCategories.removeWhere((cat) => 
           cat == CategoryConstants.allTasksCategoryName ||
           cat == CategoryConstants.completedCategoryName);
       
-      // Đảm bảo luôn có ít nhất một danh mục
-      if (uniqueCategories.isEmpty) {
-        uniqueCategories.add('Mặc định');
+      // Convert to list and ensure we have at least one category (fallback to 'Công việc')
+      final result = uniqueCategories.toList();
+      if (result.isEmpty) {
+        result.add('Công việc');
       }
       
-      return uniqueCategories;
+      return result;
     } catch (e) {
       debugPrint('Lỗi khi lấy danh sách danh mục: $e');
-      // Trường hợp lỗi, trả về danh mục mặc định
-      return ['Mặc định', 'Công việc'];
+      // Trường hợp lỗi, trả về danh mục nền tảng
+      return ['Công việc'];
     }
   }
   
@@ -98,7 +95,6 @@ class ListsData {
       name: name,
       color: color ?? '#607D8B',
       icon: icon ?? Icons.folder,
-      isDefault: false,
       isSystem: false,
     );
     
@@ -114,7 +110,7 @@ class ListsData {
   /// Remove a custom category
   static void removeCustomCategory(String categoryName) {
     final category = _categoryService.getCategoryByName(categoryName);
-    if (category != null && !category.isDefault && !category.isSystem) {
+    if (category != null && !category.isSystem) {
       _categoryService.removeCustomCategory(category.id);
       
       // Update legacy lists
@@ -132,16 +128,13 @@ class ListsData {
   static Future<void> saveCustomCategories() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final customCategories = _categoryService.getSelectableCategories()
-          .where((cat) => !cat.isDefault)
-          .toList();
+      final customCategories = _categoryService.getSelectableCategories().toList();
       
       final categoriesJson = customCategories.map((cat) => {
         'id': cat.id,
         'name': cat.name,
         'color': cat.color,
         'icon': cat.icon.codePoint,
-        'isDefault': cat.isDefault,
         'isSystem': cat.isSystem,
       }).toList();
       
@@ -167,7 +160,6 @@ class ListsData {
             name: categoryData['name'],
             color: categoryData['color'],
             icon: IconData(categoryData['icon'], fontFamily: 'MaterialIcons'),
-            isDefault: categoryData['isDefault'] ?? false,
             isSystem: categoryData['isSystem'] ?? false,
           );
           
@@ -184,5 +176,38 @@ class ListsData {
     } catch (e) {
       debugPrint('Error loading custom categories: $e');
     }
+  }
+  
+  /// Remove all custom categories from persistent storage and memory (for auth changes)
+  static Future<void> clearCustomCategoriesStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('custom_categories');
+      debugPrint('Cleared custom_categories from SharedPreferences');
+    } catch (e) {
+      debugPrint('Error clearing custom categories storage: $e');
+    }
+  }
+
+  /// Clear in-memory custom categories and reset legacy lists to defaults
+  static void clearInMemoryCustomCategories() {
+    _categoryService.clearCustomCategories();
+
+    final defaultNames = CategoryConstants.getSelectableCategories().map((c) => c.name).toSet();
+    // Keep only system All Tasks and default names
+    lists.removeWhere((name) => name != CategoryConstants.allTasksCategoryName && !defaultNames.contains(name));
+    listOptions.removeWhere((name) => name != CategoryConstants.allTasksCategoryName && !defaultNames.contains(name));
+
+    // Ensure defaults exist
+    for (final def in defaultNames) {
+      if (!lists.contains(def)) lists.add(def);
+      if (!listOptions.contains(def)) listOptions.add(def);
+    }
+  }
+
+  /// Convenience method to reset categories when auth changes
+  static Future<void> resetCategoriesForAuthChange() async {
+    await clearCustomCategoriesStorage();
+    clearInMemoryCustomCategories();
   }
 }

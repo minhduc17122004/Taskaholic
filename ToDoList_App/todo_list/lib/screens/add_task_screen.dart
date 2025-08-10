@@ -5,7 +5,9 @@ import '../data/lists_data.dart';
 import '../domain/entities/task.dart';
 import '../presentation/bloc/task/task_bloc.dart';
 import '../presentation/bloc/task/task_event.dart';
+import '../presentation/bloc/task/task_state.dart';
 import '../utils/date_format_utils.dart';
+import '../widgets/reactive_category_dropdown.dart';
 
 class AddTaskScreen extends StatefulWidget {
   final Task? existingTask;
@@ -31,6 +33,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   String? _selectedList;
   String? _taskId;
   bool _isLoading = false;
+  String? _categoryChanged; // Track if category was changed for navigation
 
   final List<String> _repeatOptions = [
     'Không lặp lại',
@@ -83,16 +86,16 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           if (ListsData.isValidCategoryForAssignment(widget.initialList!)) {
             _selectedList = widget.initialList;
           } else {
-            _selectedList = categories.isNotEmpty ? categories[0] : 'Mặc định';
+            _selectedList = categories.isNotEmpty ? categories[0] : 'Công việc';
           }
         } else {
-          _selectedList = categories.isNotEmpty ? categories[0] : 'Mặc định';
+          _selectedList = categories.isNotEmpty ? categories[0] : 'Công việc';
         }
         
         _originalList = _selectedList;
         developer.log('Initialized category: $_selectedList', name: 'AddTaskScreen');
       } catch (e) {
-        _selectedList = 'Mặc định';
+        _selectedList = 'Công việc';
         _originalList = _selectedList;
         developer.log('Error initializing category: $e', name: 'AddTaskScreen');
       }
@@ -101,17 +104,23 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
   bool get hasUnsavedChanges {
     if (widget.existingTask != null) {
-      return _taskController.text != _originalTitle ||
-          !_areDatesEqual(_selectedDate, _originalDate) ||
-          !_areTimesEqual(_selectedTime, _originalTime) ||
-          _selectedRepeat != _originalRepeat ||
-          _selectedList != _originalList;
+      // For editing - check if any field has changed from original
+      final titleChanged = _taskController.text.trim() != _originalTitle;
+      final dateChanged = !_areDatesEqual(_selectedDate, _originalDate);
+      final timeChanged = !_areTimesEqual(_selectedTime, _originalTime);
+      final repeatChanged = _selectedRepeat != _originalRepeat;
+      final listChanged = _selectedList != _originalList;
+      
+      developer.log('Change detection: title=$titleChanged, date=$dateChanged, time=$timeChanged, repeat=$repeatChanged, list=$listChanged', name: 'AddTaskScreen');
+      
+      return titleChanged || dateChanged || timeChanged || repeatChanged || listChanged;
     } else {
-      return _taskController.text.isNotEmpty ||
+      // For new task - check if any field has been filled
+      return _taskController.text.trim().isNotEmpty ||
           _selectedDate != null ||
           _selectedTime != null ||
           _selectedRepeat != 'Không lặp lại' ||
-          _selectedList != _originalList;
+          (_selectedList != null && _selectedList != _originalList);
     }
   }
 
@@ -126,7 +135,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   bool _areTimesEqual(TimeOfDay? time1, TimeOfDay? time2) {
     if (time1 == null && time2 == null) return true;
     if (time1 == null || time2 == null) return false;
-    return time1.hour == time2.hour && time1.minute == time2.minute;
+    return time1.hour == time2.hour && time2.minute == time2.minute;
   }
 
   Future<bool> _onWillPop() async {
@@ -224,29 +233,37 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       return;
     }
 
+    // Check if there are any changes when editing
+    if (widget.existingTask != null && !hasUnsavedChanges) {
+      _showSuccessMessage('Không có thay đổi nào để lưu');
+      Navigator.of(context).pop();
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final now = DateTime.now();
-      final date = _selectedDate ?? now;
-      final time = _selectedTime ?? TimeOfDay.now();
-      
-      String list;
-      if (_selectedList == null || _selectedList!.isEmpty) {
-        list = 'Mặc định';
-      } else if (!ListsData.isValidCategoryForAssignment(_selectedList!)) {
-        final categories = ListsData.getAddTaskListOptions();
-        list = categories.isNotEmpty ? categories[0] : 'Mặc định';
-      } else {
-        list = _selectedList!;
-      }
-      
-      developer.log('Saving task with category: $list', name: 'AddTaskScreen');
-
       if (widget.existingTask != null && _taskId != null) {
-        // Update existing task
+        // Update existing task - use original values if fields haven't changed
+        final originalTask = widget.existingTask!;
+        
+        final date = _selectedDate ?? originalTask.date;
+        final time = _selectedTime ?? originalTask.time;
+        
+        String list;
+        if (_selectedList == null || _selectedList!.isEmpty) {
+          list = originalTask.list; // Keep original if no selection
+        } else if (!ListsData.isValidCategoryForAssignment(_selectedList!)) {
+          final categories = ListsData.getAddTaskListOptions();
+          list = categories.isNotEmpty ? categories[0] : 'Công việc';
+        } else {
+          list = _selectedList!;
+        }
+        
+        developer.log('Updating task with category: $list', name: 'AddTaskScreen');
+
         final updatedTask = Task(
           id: _taskId!,
           title: _taskController.text.trim(),
@@ -254,14 +271,47 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           time: time,
           repeat: _selectedRepeat,
           list: list,
-          originalList: widget.existingTask!.originalList,
-          isCompleted: widget.existingTask!.isCompleted,
+          originalList: originalTask.originalList,
+          isCompleted: originalTask.isCompleted,
         );
+        
+        // Add update event and wait for processing
         context.read<TaskBloc>().add(UpdateTaskEvent(updatedTask));
         
-        _showSuccessMessage('Nhiệm vụ đã được cập nhật');
+        // Wait longer for update to complete
+        await Future.delayed(const Duration(milliseconds: 1000));
+        
+        if (mounted) {
+          _showSuccessMessage('Nhiệm vụ đã được cập nhật');
+          
+          // Check if category was changed to navigate to the new category
+          if (list != originalTask.list) {
+            developer.log('Task category changed from "${originalTask.list}" to "$list"', name: 'AddTaskScreen');
+            // Set a flag to indicate category change for navigation
+            _categoryChanged = list;
+          } else {
+            // No category change, don't navigate
+            _categoryChanged = null;
+          }
+        }
       } else {
         // Create new task
+        final now = DateTime.now();
+        final date = _selectedDate ?? now;
+        final time = _selectedTime ?? TimeOfDay.now();
+        
+        String list;
+        if (_selectedList == null || _selectedList!.isEmpty) {
+          list = 'Công việc';
+        } else if (!ListsData.isValidCategoryForAssignment(_selectedList!)) {
+          final categories = ListsData.getAddTaskListOptions();
+          list = categories.isNotEmpty ? categories[0] : 'Công việc';
+        } else {
+          list = _selectedList!;
+        }
+        
+        developer.log('Creating task with category: $list', name: 'AddTaskScreen');
+
         final newTask = Task(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           title: _taskController.text.trim(),
@@ -272,16 +322,28 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           originalList: list,
           isCompleted: false,
         );
+        
+        // Add creation event and wait for processing
         context.read<TaskBloc>().add(AddTaskEvent(newTask));
         
-        _showSuccessMessage('Nhiệm vụ đã được tạo');
+        // Wait longer for creation to complete
+        await Future.delayed(const Duration(milliseconds: 1000));
+        
+        if (mounted) {
+          _showSuccessMessage('Nhiệm vụ đã được tạo');
+          
+          // Set the category for navigation (for new tasks, always navigate to the created category)
+          _categoryChanged = list;
+          developer.log('New task created in category: $list', name: 'AddTaskScreen');
+        }
       }
 
-      // Wait a bit for the operation to complete, then navigate back
-      await Future.delayed(const Duration(milliseconds: 300));
+      // Wait longer for the operation to complete, then navigate back
+      await Future.delayed(const Duration(milliseconds: 1500));
       
       if (mounted) {
-        Navigator.of(context).pop();
+        // Return the updated category if it was changed
+        Navigator.of(context).pop(_categoryChanged);
       }
     } catch (e) {
       _showErrorMessage('Lỗi khi lưu nhiệm vụ: $e');
@@ -336,26 +398,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   Widget build(BuildContext context) {
     final bool isEditing = widget.existingTask != null;
     
-    // Ensure dropdown always contains _selectedList
-    List<String> dropdownListOptions = [];
-    try {
-      dropdownListOptions = List.from(ListsData.getAddTaskListOptions());
-      
-      if (dropdownListOptions.isEmpty) {
-        dropdownListOptions.add('Mặc định');
-      }
-      
-      if (_selectedList != null && !dropdownListOptions.contains(_selectedList)) {
-        if (_selectedList != null && ListsData.isValidCategoryForAssignment(_selectedList!)) {
-          dropdownListOptions.add(_selectedList!);
-        } else {
-          _selectedList = dropdownListOptions.isNotEmpty ? dropdownListOptions.first : 'Mặc định';
-        }
-      }
-    } catch (e) {
-      dropdownListOptions = ['Mặc định'];
-      _selectedList = 'Mặc định';
-    }
+    // Categories will be handled by ReactiveCategoryDropdown
 
     return WillPopScope(
       onWillPop: _onWillPop,
@@ -615,36 +658,16 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   const SizedBox(height: 20),
 
                   // Category dropdown
-                  InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'Danh mục',
-                      labelStyle: TextStyle(color: Colors.white70),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white60),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Danh mục',
+                        style: TextStyle(color: Colors.white70, fontSize: 16),
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white60),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Color.fromARGB(255, 1, 115, 182), width: 2),
-                      ),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _selectedList,
-                        isExpanded: true,
-                        dropdownColor: const Color.fromARGB(255, 1, 63, 113),
-                        style: const TextStyle(color: Colors.white),
-                        icon: const Icon(Icons.arrow_drop_down, color: Colors.white70),
-                        items: dropdownListOptions.map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(
-                              value,
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          );
-                        }).toList(),
+                      const SizedBox(height: 8),
+                      ReactiveCategoryDropdown(
+                        selectedCategory: _selectedList,
                         onChanged: (String? newValue) {
                           if (newValue != null) {
                             setState(() {
@@ -652,8 +675,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                             });
                           }
                         },
+                        hint: 'Chọn danh mục',
                       ),
-                    ),
+                    ],
                   ),
                   const SizedBox(height: 32),
 

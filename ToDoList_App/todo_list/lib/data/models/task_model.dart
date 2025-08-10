@@ -29,34 +29,35 @@ class TaskModel extends Task {
       // Handle time field - can be either string "HH:MM" or object {"hour": x, "minute": y}
       TimeOfDay timeOfDay;
       if (json['time'] is String) {
-        // String format: "14:30"
-    final timeString = json['time'] as String;
-    final timeParts = timeString.split(':');
-    final hour = int.parse(timeParts[0]);
-    final minute = int.parse(timeParts[1]);
-        timeOfDay = TimeOfDay(hour: hour, minute: minute);
+        final timeString = json['time'] as String;
+        if (timeString == '0:0') {
+          timeOfDay = const TimeOfDay(hour: 0, minute: 0);
+        } else {
+          final timeParts = timeString.split(':');
+          final hour = int.parse(timeParts[0]);
+          final minute = int.parse(timeParts[1]);
+          timeOfDay = TimeOfDay(hour: hour, minute: minute);
+        }
       } else if (json['time'] is Map<String, dynamic>) {
-        // Object format: {"hour": 14, "minute": 30}
         final timeMap = json['time'] as Map<String, dynamic>;
         timeOfDay = TimeOfDay(
           hour: timeMap['hour'] as int,
           minute: timeMap['minute'] as int,
         );
       } else {
-        // Fallback to current time if format is unexpected
         final now = TimeOfDay.now();
         timeOfDay = now;
         debugPrint('Warning: Unexpected time format in JSON, using current time: ${json['time']}');
       }
 
-    return TaskModel(
+      return TaskModel(
         id: json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
         title: json['title']?.toString() ?? '',
         date: json['date'] is String ? DateTime.parse(json['date']) : (json['date'] as DateTime? ?? DateTime.now()),
         time: timeOfDay,
         repeat: json['repeat']?.toString() ?? 'Không lặp lại',
-        list: json['list']?.toString() ?? 'Mặc định',
-        originalList: json['originalList']?.toString() ?? json['list']?.toString() ?? 'Mặc định',
+        list: json['list']?.toString() ?? 'Công việc',
+        originalList: json['originalList']?.toString() ?? json['list']?.toString() ?? 'Công việc',
         isCompleted: json['isCompleted'] is bool ? json['isCompleted'] : (json['isCompleted']?.toString() == 'true'),
       );
     } catch (e) {
@@ -70,19 +71,21 @@ class TaskModel extends Task {
         date: DateTime.now(),
         time: TimeOfDay.now(),
         repeat: 'Không lặp lại',
-        list: 'Mặc định',
-        originalList: 'Mặc định',
+        list: 'Công việc',
+        originalList: 'Công việc',
         isCompleted: false,
-    );
+      );
     }
   }
 
   Map<String, dynamic> toJson() {
+    final hh = time.hour.toString().padLeft(2, '0');
+    final mm = time.minute.toString().padLeft(2, '0');
     return {
       'id': id,
       'title': title,
       'date': date.toIso8601String(),
-      'time': '${time.hour}:${time.minute}',
+      'time': '$hh:$mm',
       'repeat': repeat,
       'list': list,
       'originalList': originalList,

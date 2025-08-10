@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../presentation/bloc/task/task_bloc.dart';
 import '../../../presentation/bloc/task/task_state.dart';
+import '../../../presentation/bloc/task/task_event.dart';
+import '../home/home_bloc.dart';
+import '../home/home_event.dart';
 import 'category_bloc.dart';
 import 'category_event.dart';
 import 'category_state.dart';
@@ -20,8 +23,7 @@ class _CategoryPageState extends State<CategoryPage> {
   @override
   void initState() {
     super.initState();
-    // Tải danh sách danh mục khi màn hình được khởi tạo
-    context.read<CategoryBloc>().add(const LoadCategoriesEvent());
+    // Categories auto-load via bloc initialization, no manual loading needed
   }
 
   void _showAddListDialog() {
@@ -107,8 +109,25 @@ class _CategoryPageState extends State<CategoryPage> {
                 duration: const Duration(seconds: 2),
               ),
             );
-            // Tải lại danh sách sau khi hiển thị lỗi
-            context.read<CategoryBloc>().add(const LoadCategoriesEvent());
+            // No auto-reload - let user manually refresh if needed
+          } else if (state is CategoryUpdated) {
+            // Success feedback only; no reload needed thanks to optimistic updates
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Đã cập nhật danh mục thành công'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          } else if (state is CategoryAdded) {
+            // Success feedback only; no reload needed thanks to optimistic updates
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Đã thêm danh mục thành công'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
+              ),
+            );
           }
         },
         builder: (context, state) {
@@ -125,9 +144,9 @@ class _CategoryPageState extends State<CategoryPage> {
                   return ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: state.categories.length,
-                    itemBuilder: (context, index) {
-                      final category = state.categories[index];
-                      final taskCount = taskState.getTasksByList(category).length;
+                      itemBuilder: (context, index) {
+                        final category = state.categories[index];
+                        final taskCount = taskState.getTasksByList(category).length;
                       
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),

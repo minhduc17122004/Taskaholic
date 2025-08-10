@@ -112,8 +112,8 @@ class _DebugScreenState extends State<DebugScreen> {
             'date': DateTime.now().toIso8601String(),
             'time': '0:0',
             'repeat': 'Không lặp lại',
-            'list': 'Mặc định',
-            'originalList': 'Mặc định',
+            'list': 'Công việc',
+            'originalList': 'Công việc',
             'isCompleted': false,
           });
       

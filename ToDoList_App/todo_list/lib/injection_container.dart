@@ -23,6 +23,7 @@ import 'domain/usecases/sign_out.dart';
 import 'domain/usecases/sign_up_with_email_and_password.dart';
 import 'domain/usecases/toggle_task.dart';
 import 'domain/usecases/update_task.dart';
+import 'domain/usecases/update_tasks_category.dart';
 import 'presentation/bloc/auth/auth_bloc.dart';
 import 'presentation/bloc/task/task_bloc.dart';
 import 'presentation/pages/category/category_bloc.dart';
@@ -57,6 +58,8 @@ Future<void> init() async {
     () => CategoryBloc(
       categoryRepository: sl(),
       categoryService: sl(),
+      updateTasksCategory: sl(),
+      categoryNotifier: sl(), 
     ),
   );
     
@@ -79,6 +82,11 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateTask(sl()));
   sl.registerLazySingleton(() => DeleteTask(sl()));
   sl.registerLazySingleton(() => ToggleTask(sl()));
+  sl.registerLazySingleton(() => UpdateTasksCategory(
+    repository: sl(),
+    getTasks: sl(),
+    updateTask: sl(),
+  ));
   
   // Use cases - Auth
   sl.registerLazySingleton(() => SignInWithEmailAndPassword(sl()));

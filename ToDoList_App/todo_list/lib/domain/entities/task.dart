@@ -49,11 +49,6 @@ class Task extends Equatable {
 
   // Lấy danh mục của task dựa vào ngày (quá hạn, hôm nay, ngày mai, tuần này)
   String get category {
-    // Nếu task thuộc danh sách Mặc định, gán danh mục là "Không có ngày"
-    if (list == 'Mặc định') {
-      return 'Không có ngày';
-    }
-
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final taskDay = DateTime(date.year, date.month, date.day);
@@ -97,11 +92,6 @@ class Task extends Equatable {
 
   // Format ngày để hiển thị (VD: Hôm nay, 12:00)
   String getFormattedDate() {
-    // Nếu task thuộc danh sách Mặc định, không hiển thị ngày
-    if (list == 'Mặc định') {
-      return '';
-    }
-    
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));

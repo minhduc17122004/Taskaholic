@@ -23,10 +23,19 @@ class CategoryService {
 
   /// Get selectable categories for task assignment (excludes system categories)
   List<CategoryInfo> getSelectableCategories() {
-    return [
-      ...CategoryConstants.getSelectableCategories(),
-      ..._customCategories.where((cat) => !cat.isSystem),
-    ];
+    final categories = <CategoryInfo>[];
+    
+    // Add default categories first
+    categories.addAll(CategoryConstants.getSelectableCategories());
+    
+    // Add custom categories, but avoid duplicates by name
+    for (final customCat in _customCategories.where((cat) => !cat.isSystem)) {
+      if (!categories.any((cat) => cat.name == customCat.name)) {
+        categories.add(customCat);
+      }
+    }
+    
+    return categories;
   }
 
   /// Get category names for dropdowns (excludes system categories)
@@ -36,9 +45,12 @@ class CategoryService {
 
   /// Add a custom category (insert at beginning)
   void addCustomCategory(CategoryInfo category) {
-    if (!_customCategories.any((cat) => cat.id == category.id)) {
+    // Check for duplicates by both ID and name to prevent duplicates
+    if (!_customCategories.any((cat) => cat.id == category.id || cat.name == category.name)) {
       _customCategories.insert(0, category); // Insert at beginning instead of end
       developer.log('Added custom category: ${category.name}', name: 'CategoryService');
+    } else {
+      developer.log('Category already exists, skipping add: ${category.name}', name: 'CategoryService');
     }
   }
 
@@ -144,10 +156,6 @@ class CategoryService {
 
   /// Get time-based category for a task (for display purposes)
   String getTimeCategoryForTask(Task task) {
-    if (task.list == 'Mặc định') {
-      return 'Không có ngày';
-    }
-
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
@@ -203,20 +211,20 @@ class CategoryService {
 
   /// Check if a category name is valid for task assignment
   bool isValidCategoryForAssignment(String categoryName) {
-    // Đảm bảo danh mục không phải là danh mục hệ thống
-    if (CategoryConstants.isSystemCategory(categoryName) ||
-        categoryName == CategoryConstants.completedCategoryName) {
+    // Block reserved system names
+    if (categoryName == CategoryConstants.completedCategoryName ||
+        categoryName == CategoryConstants.allTasksCategoryName) {
       return false;
     }
     
-    // Danh mục mặc định luôn hợp lệ
-    if (categoryName == 'Mặc định' || categoryName == 'Công việc') {
+    // Allow known default category
+    if (categoryName == 'Công việc') {
       return true;
     }
     
-    // Kiểm tra xem danh mục có tồn tại trong danh sách danh mục không
+    // Ensure exists among selectable categories
     final allCategories = getAllDisplayCategories();
-    return allCategories.any((cat) => cat.name == categoryName);
+    return allCategories.any((cat) => cat.name == categoryName && !cat.isSystem);
   }
 
   /// Get category display color
@@ -226,8 +234,8 @@ class CategoryService {
       return category.colorValue;
     }
 
-    // Fallback to time-based category colors
-    return CategoryConstants.getTimeCategoryColor(categoryName);
+    // Fallback to default grey
+    return Colors.grey;
   }
 
   /// Get category icon

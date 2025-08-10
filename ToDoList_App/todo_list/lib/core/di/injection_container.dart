@@ -18,6 +18,9 @@ import '../../features/task/domain/usecases/toggle_task.dart';
 import '../../features/task/domain/usecases/update_task.dart';
 import '../../features/task/presentation/bloc/task_bloc.dart';
 
+// Legacy usecases for category operations
+import '../../domain/usecases/update_tasks_category.dart';
+
 // Legacy Task (for transition)
 import '../../presentation/bloc/task/task_bloc.dart' as legacy;
 import '../../domain/usecases/add_task.dart' as legacy_usecase;
@@ -53,6 +56,7 @@ import '../../presentation/pages/home/home_bloc.dart';
 // Core
 import '../services/notification_service.dart';
 import '../services/category_service.dart';
+import '../services/category_notifier.dart';
 
 final sl = GetIt.instance;
 
@@ -64,6 +68,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => NotificationService());
   sl.registerLazySingleton(() => CategoryService());
+  sl.registerLazySingleton(() => CategoryNotifier());
 
   // Feature: Task
   // Bloc
@@ -117,6 +122,13 @@ Future<void> init() async {
   sl.registerLazySingleton(() => legacy_usecase.UpdateTask(sl<legacy_repo.TaskRepository>()));
   sl.registerLazySingleton(() => legacy_usecase.DeleteTask(sl<legacy_repo.TaskRepository>()));
   sl.registerLazySingleton(() => legacy_usecase.ToggleTask(sl<legacy_repo.TaskRepository>()));
+  
+  // Category-related use cases
+  sl.registerLazySingleton(() => UpdateTasksCategory(
+    repository: sl<legacy_repo.TaskRepository>(),
+    getTasks: sl<legacy_usecase.GetTasks>(),
+    updateTask: sl<legacy_usecase.UpdateTask>(),
+  ));
 
   // Use cases
   sl.registerLazySingleton(() => GetTasks(sl()));
@@ -190,6 +202,8 @@ Future<void> init() async {
     () => CategoryBloc(
       categoryRepository: sl(),
       categoryService: sl(),
+      updateTasksCategory: sl(),
+      categoryNotifier: sl(),
     ),
   );
 

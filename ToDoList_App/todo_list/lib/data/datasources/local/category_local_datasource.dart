@@ -10,6 +10,7 @@ abstract class CategoryLocalDataSource {
   Future<void> addCategory(CategoryModel category);
   Future<void> updateCategory(CategoryModel category);
   Future<void> deleteCategory(String id);
+  Future<void> clearCategories();
 }
 
 class CategoryLocalDataSourceImpl implements CategoryLocalDataSource {
@@ -74,5 +75,11 @@ class CategoryLocalDataSourceImpl implements CategoryLocalDataSource {
     final categories = await getCategories();
     categories.removeWhere((category) => category.id == id);
     await cacheCategories(categories);
+  }
+
+  @override
+  Future<void> clearCategories() async {
+    developer.log('Xóa toàn bộ danh mục khỏi SharedPreferences', name: 'CategoryLocalDataSource');
+    await sharedPreferences.remove(CACHED_CATEGORIES);
   }
 } 

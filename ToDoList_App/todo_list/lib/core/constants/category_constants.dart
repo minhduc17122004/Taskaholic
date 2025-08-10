@@ -17,7 +17,6 @@ class CategoryConstants {
       name: 'Công việc',
       color: '#2196F3',
       icon: Icons.work,
-      isDefault: true,
       isSystem: false,
     ),
     CategoryInfo(
@@ -25,7 +24,6 @@ class CategoryConstants {
       name: 'Cá nhân',
       color: '#4CAF50',
       icon: Icons.person,
-      isDefault: true,
       isSystem: false,
     ),
     CategoryInfo(
@@ -33,7 +31,6 @@ class CategoryConstants {
       name: 'Học tập',
       color: '#FF9800',
       icon: Icons.school,
-      isDefault: true,
       isSystem: false,
     ),
     CategoryInfo(
@@ -41,7 +38,6 @@ class CategoryConstants {
       name: 'Sức khỏe',
       color: '#E91E63',
       icon: Icons.favorite,
-      isDefault: true,
       isSystem: false,
     ),
     CategoryInfo(
@@ -49,15 +45,6 @@ class CategoryConstants {
       name: 'Mua sắm',
       color: '#9C27B0',
       icon: Icons.shopping_cart,
-      isDefault: true,
-      isSystem: false,
-    ),
-    CategoryInfo(
-      id: 'default',
-      name: 'Mặc định',
-      color: '#607D8B',
-      icon: Icons.inbox,
-      isDefault: true,
       isSystem: false,
     ),
   ];
@@ -69,7 +56,6 @@ class CategoryConstants {
       name: completedCategoryName,
       color: '#4CAF50',
       icon: Icons.check_circle,
-      isDefault: false,
       isSystem: true,
     ),
     CategoryInfo(
@@ -77,7 +63,6 @@ class CategoryConstants {
       name: allTasksCategoryName,
       color: '#2196F3',
       icon: Icons.list,
-      isDefault: false,
       isSystem: true,
     ),
   ];
@@ -126,34 +111,9 @@ class CategoryConstants {
     }
   }
   
-  /// Check if a category is system category
-  static bool isSystemCategory(String categoryId) {
+  /// Check if a category is system category by ID
+  static bool isSystemCategoryId(String categoryId) {
     return systemCategories.any((cat) => cat.id == categoryId);
-  }
-  
-  /// Check if a category is the completed category
-  static bool isCompletedCategory(String categoryId) {
-    return categoryId == completedCategoryId;
-  }
-  
-  /// Get color for time-based categories
-  static Color getTimeCategoryColor(String categoryName) {
-    switch (categoryName) {
-      case 'Quá hạn':
-        return Colors.redAccent;
-      case 'Hôm nay':
-        return Colors.orangeAccent;
-      case 'Ngày mai':
-        return Colors.blueAccent;
-      case 'Tuần này':
-        return Colors.purpleAccent;
-      case 'Không có ngày':
-        return Colors.tealAccent;
-      case 'Sắp tới':
-        return Colors.greenAccent;
-      default:
-        return Colors.grey;
-    }
   }
 }
 
@@ -163,7 +123,6 @@ class CategoryInfo {
   final String name;
   final String color;
   final IconData icon;
-  final bool isDefault;
   final bool isSystem;
   
   const CategoryInfo({
@@ -171,7 +130,6 @@ class CategoryInfo {
     required this.name,
     required this.color,
     required this.icon,
-    required this.isDefault,
     required this.isSystem,
   });
   
@@ -186,7 +144,6 @@ class CategoryInfo {
     String? name,
     String? color,
     IconData? icon,
-    bool? isDefault,
     bool? isSystem,
   }) {
     return CategoryInfo(
@@ -194,7 +151,6 @@ class CategoryInfo {
       name: name ?? this.name,
       color: color ?? this.color,
       icon: icon ?? this.icon,
-      isDefault: isDefault ?? this.isDefault,
       isSystem: isSystem ?? this.isSystem,
     );
   }

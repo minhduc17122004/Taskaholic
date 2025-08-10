@@ -198,10 +198,10 @@ class TaskSearchDelegate extends SearchDelegate<Task?> {
             decorationColor: Colors.white54,
           ),
         ),
-        subtitle: task.hasTime || task.list != 'Mặc định'
+        subtitle: task.hasTime || task.getFormattedDate().isNotEmpty
             ? Text(
-                '${task.list != 'Mặc định' ? task.getFormattedDate() : ''}'
-                '${task.list != 'Mặc định' && task.hasTime ? ' • ' : ''}'
+                '${task.getFormattedDate().isNotEmpty ? task.getFormattedDate() : ''}'
+                '${task.getFormattedDate().isNotEmpty && task.hasTime ? ' • ' : ''}'
                 '${task.hasTime ? task.getFormattedTime(context) : ''}',
                 style: const TextStyle(color: Colors.white70, fontSize: 12),
               )

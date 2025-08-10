@@ -8,6 +8,10 @@ import '../../../domain/usecases/sign_out.dart';
 import '../../../domain/usecases/sign_up_with_email_and_password.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
+import '../../../core/di/injection_container.dart' as di;
+import '../../../data/datasources/local/task_local_datasource.dart';
+import '../../../data/datasources/local/category_local_datasource.dart';
+import '../../../data/lists_data.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SignInWithEmailAndPassword signInWithEmailAndPassword;
@@ -30,6 +34,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onSignIn(SignInEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
+
+    // Clear any stale local caches before signing in
+    try {
+      final taskLocal = di.sl<TaskLocalDataSource>();
+      await taskLocal.clearAllTaskCaches();
+      final categoryLocal = di.sl<CategoryLocalDataSource>();
+      await categoryLocal.clearCategories();
+      await ListsData.resetCategoriesForAuthChange();
+      developer.log('Cleared local caches (tasks & categories) before sign in', name: 'AuthBloc');
+    } catch (e) {
+      developer.log('Failed to clear local cache before sign in: $e', name: 'AuthBloc');
+    }
+
     final result = await signInWithEmailAndPassword(
       SignInParams(
         email: event.email,
@@ -45,6 +62,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onSignUp(SignUpEvent event, Emitter<AuthState> emit) async {
     developer.log('Bắt đầu đăng ký với email: ${event.email}', name: 'AuthBloc');
     emit(AuthLoading());
+
+    // Clear any stale local caches before sign up
+    try {
+      final taskLocal = di.sl<TaskLocalDataSource>();
+      await taskLocal.clearAllTaskCaches();
+      final categoryLocal = di.sl<CategoryLocalDataSource>();
+      await categoryLocal.clearCategories();
+      await ListsData.resetCategoriesForAuthChange();
+      developer.log('Cleared local caches (tasks & categories) before sign up', name: 'AuthBloc');
+    } catch (e) {
+      developer.log('Failed to clear local cache before sign up: $e', name: 'AuthBloc');
+    }
     
     final result = await signUpWithEmailAndPassword(
       SignUpParams(
@@ -67,6 +96,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onSignOut(SignOutEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
+
+    // Clear local caches on sign out
+    try {
+      final taskLocal = di.sl<TaskLocalDataSource>();
+      await taskLocal.clearAllTaskCaches();
+      final categoryLocal = di.sl<CategoryLocalDataSource>();
+      await categoryLocal.clearCategories();
+      await ListsData.resetCategoriesForAuthChange();
+      developer.log('Cleared local caches (tasks & categories) on sign out', name: 'AuthBloc');
+    } catch (e) {
+      developer.log('Failed to clear local cache on sign out: $e', name: 'AuthBloc');
+    }
+
     final result = await signOut();
     await result.fold(
       (failure) async => emit(AuthError(failure.message)),

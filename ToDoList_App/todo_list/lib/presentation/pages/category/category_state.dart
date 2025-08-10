@@ -28,3 +28,21 @@ class CategoryError extends CategoryState {
   @override
   List<Object?> get props => [message];
 } 
+
+class CategoryUpdated extends CategoryState {
+  final String message;
+
+  const CategoryUpdated(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class CategoryAdded extends CategoryState {
+  final String message;
+
+  const CategoryAdded(this.message);
+
+  @override
+  List<Object?> get props => [message];
+} 

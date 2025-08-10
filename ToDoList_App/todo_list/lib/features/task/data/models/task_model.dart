@@ -44,8 +44,8 @@ class TaskModel extends TaskEntity {
         date: json['date'] is String ? DateTime.parse(json['date']) : (json['date'] as DateTime? ?? DateTime.now()),
         time: timeOfDay,
         repeat: json['repeat']?.toString() ?? 'Không lặp lại',
-        list: json['list']?.toString() ?? 'Mặc định',
-        originalList: json['originalList']?.toString() ?? json['list']?.toString() ?? 'Mặc định',
+        list: json['list']?.toString() ?? 'Công việc',
+        originalList: json['originalList']?.toString() ?? json['list']?.toString() ?? 'Công việc',
         isCompleted: json['isCompleted'] is bool ? json['isCompleted'] : (json['isCompleted']?.toString() == 'true'),
       );
     } catch (e) {
@@ -59,8 +59,8 @@ class TaskModel extends TaskEntity {
         date: DateTime.now(),
         time: TimeOfDay.now(),
         repeat: 'Không lặp lại',
-        list: 'Mặc định',
-        originalList: 'Mặc định',
+        list: 'Công việc',
+        originalList: 'Công việc',
         isCompleted: false,
       );
     }

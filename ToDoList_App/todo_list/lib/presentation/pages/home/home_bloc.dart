@@ -15,7 +15,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(HomeLoading());
     
     try {
-      final availableLists = ListsData.lists;
+      final availableLists = ListsData.getNavigationCategories();
       const defaultList = 'Danh sách tất cả';
       const defaultIndex = 0; // Tab Home
       

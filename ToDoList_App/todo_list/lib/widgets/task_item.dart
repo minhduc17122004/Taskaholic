@@ -23,9 +23,16 @@ class TaskItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Xác định xem có hiển thị danh sách gốc hay không
-    final bool shouldShowOriginalList =
-        showOriginalList &&
-        task.originalList != 'Mặc định';
+    final bool shouldShowOriginalList = showOriginalList;
+
+    // Xác định có hiển thị thông tin ngày giờ không
+    final shouldShowDateTime = showDateTime &&
+        task.hasTime ||
+        showOriginalList;
+
+    // Xác định có hiển thị tên danh sách không
+    final shouldShowListName = showListName &&
+        task.list.isNotEmpty;
 
     return InkWell(
       // Thêm InkWell để xử lý sự kiện nhấp vào
@@ -88,17 +95,15 @@ class TaskItem extends StatelessWidget {
                     // Chỉ hiển thị phần thông tin bổ sung nếu có thông tin để hiển thị
                     if (showDateTime ||
                         shouldShowOriginalList ||
-                        (showListName &&
-                            task.list != 'Mặc định') ||
+                        showListName ||
                         task.repeat != 'Không lặp lại') ...[
                       const SizedBox(height: 3),
                       // Thông tin thời gian và danh sách của công việc
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // Chỉ hiển thị ngày giờ nếu showDateTime = true và công việc không thuộc danh sách Mặc định
-                          // Kiểm tra cả danh sách hiện tại và danh sách gốc
-                          if (showDateTime && task.originalList != 'Mặc định' && task.hasTime)
+                          // Chỉ hiển thị ngày giờ nếu showDateTime = true và task có thời gian
+                          if (showDateTime && task.hasTime)
                             Text(
                               '${task.getFormattedDate()}, ${task.getFormattedTime(context)}',
                               style: TextStyle(
@@ -110,7 +115,7 @@ class TaskItem extends StatelessWidget {
                               ),
                             ),
                           // Chỉ hiển thị ngày nếu không có thời gian
-                          if (showDateTime && task.originalList != 'Mặc định' && !task.hasTime && task.getFormattedDate().isNotEmpty)
+                          if (showDateTime && !task.hasTime && task.getFormattedDate().isNotEmpty)
                             Text(
                               task.getFormattedDate(),
                               style: TextStyle(
@@ -148,9 +153,8 @@ class TaskItem extends StatelessWidget {
                               ),
                             ),
 
-                          // Hiển thị tên danh sách nếu showListName là true và task không thuộc danh sách Mặc định
+                          // Hiển thị tên danh sách nếu showListName là true
                           if (showListName &&
-                              task.list != 'Mặc định' &&
                               task.list != 'Kết thúc')
                             Padding(
                               padding: const EdgeInsets.only(left: 8),

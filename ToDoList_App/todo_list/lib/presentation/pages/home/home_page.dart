@@ -651,11 +651,18 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                   fullscreenDialog: false, // Tránh lỗi OpenGL
                   builder: (context) => AddTaskScreen(existingTask: task),
                 ),
-              ).then((_) {
+              ).then((newCategory) {
                 // Reload tasks when returning from task detail screen
                 if (mounted) {
                   Future.delayed(const Duration(milliseconds: 300), () {
                     context.read<TaskBloc>().add(const LoadTasks(forceRefresh: true));
+                    
+                                          // If task category was changed, navigate to the new category
+                      if (newCategory != null && newCategory is String) {
+                        developer.log('Task category changed to: $newCategory, navigating...', name: 'HomePage');
+                        // Update home bloc to switch to the new category
+                        context.read<HomeBloc>().add(ChangeCurrentListEvent(newCategory));
+                      }
                   });
                 }
               }).catchError((error) {
@@ -737,12 +744,12 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                         child: Text(task.title),
                       ),
                       // Task details
-                      if (task.hasTime || task.list != 'Mặc định')
+                      if (task.hasTime || task.getFormattedDate().isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
                           child: Row(
                             children: [
-                              if (task.list != 'Mặc định')
+                              if (task.getFormattedDate().isNotEmpty)
                                 Row(
                                   children: [
                                     const Icon(Icons.calendar_today, size: 12, color: Colors.white60),
@@ -753,7 +760,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                                     ),
                                   ],
                                 ),
-                              if (task.hasTime && task.list != 'Mặc định')
+                              if (task.hasTime && task.getFormattedDate().isNotEmpty)
                                 const Text(
                                   ', ',
                                   style: TextStyle(color: Colors.white60, fontSize: 12),
@@ -806,7 +813,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
           developer.log('Available categories: $categories', name: 'HomePage');
           
           if (categories.isEmpty) {
-            validCategory = 'Mặc định';
+            validCategory = 'Công việc';
             developer.log('No categories available, using default: $validCategory', name: 'HomePage');
           } else {
             // Ưu tiên danh mục 'Công việc' nếu có
@@ -822,7 +829,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
           // Nếu danh mục hiện tại không hợp lệ cho task
           developer.log('Current list is not valid for assignment: $currentList', name: 'HomePage');
           final categories = ListsData.getAddTaskListOptions();
-          validCategory = categories.isNotEmpty ? categories[0] : 'Mặc định';
+          validCategory = categories.isNotEmpty ? categories[0] : 'Công việc';
           developer.log('Using fallback category: $validCategory', name: 'HomePage');
         } else {
           validCategory = currentList;
@@ -830,7 +837,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         }
       } catch (e) {
         // Nếu có lỗi khi lấy danh mục, sử dụng mặc định
-        validCategory = 'Mặc định';
+        validCategory = 'Công việc';
         developer.log('Error determining category, using default: $e', name: 'HomePage', error: e);
       }
       
@@ -856,14 +863,21 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
             );
           },
         ),
-      ).then((_) {
+      ).then((newCategory) {
         developer.log('Returned from AddTaskScreen, reloading tasks', name: 'HomePage');
         // Reload tasks sau khi quay về
         if (mounted) {
           Future.delayed(const Duration(milliseconds: 300), () {
             if (mounted) {
               developer.log('Triggering task reload', name: 'HomePage');
-            context.read<TaskBloc>().add(const LoadTasks(forceRefresh: true));
+              context.read<TaskBloc>().add(const LoadTasks(forceRefresh: true));
+              
+              // If task category was changed during creation, navigate to that category
+              if (newCategory != null && newCategory is String) {
+                developer.log('New task created in category: $newCategory, navigating...', name: 'HomePage');
+                // Update home bloc to switch to the new category
+                context.read<HomeBloc>().add(ChangeCurrentListEvent(newCategory));
+              }
             }
           });
         }

@@ -3,15 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/repositories/category_repository.dart';
 import '../../../domain/entities/category.dart';
+import '../../../domain/usecases/update_tasks_category.dart';
 import '../../../data/lists_data.dart';
 import '../../../core/constants/category_constants.dart';
 import '../../../core/services/category_service.dart';
+import '../../../core/services/category_notifier.dart';
 import 'category_event.dart';
 import 'category_state.dart';
 
 class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
   final CategoryRepository categoryRepository;
   final CategoryService _categoryService;
+  final UpdateTasksCategory _updateTasksCategory;
+  final CategoryNotifier _categoryNotifier;
   
   // Hot Reload safety flag
   bool _isDisposed = false;
@@ -19,7 +23,11 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
   CategoryBloc({
     required this.categoryRepository,
     required CategoryService categoryService,
+    required UpdateTasksCategory updateTasksCategory,
+    required CategoryNotifier categoryNotifier,
   }) : _categoryService = categoryService,
+       _updateTasksCategory = updateTasksCategory,
+       _categoryNotifier = categoryNotifier,
        super(CategoryInitial()) {
     on<LoadCategoriesEvent>(_onLoadCategories);
     on<AddCategoryEvent>(_onAddCategory);
@@ -80,7 +88,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
           // Fallback to category service (local + defaults)
           final selectableCategories = _categoryService.getSelectableCategories()
               .map((cat) => cat.name)
-              .where((name) => !CategoryConstants.isSystemCategory(name))
+              .where((name) => name != CategoryConstants.completedCategoryName && name != CategoryConstants.allTasksCategoryName)
               .toList();
           
           developer.log('Loaded ${selectableCategories.length} categories from fallback', name: 'CategoryBloc');
@@ -89,7 +97,7 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
         (categories) async {
           // Filter out system categories for display
           final customCategories = categories
-              .where((cat) => !cat.isSystem && cat.name != CategoryConstants.completedCategoryName && !cat.isDefault)
+              .where((cat) => !cat.isSystem && cat.name != CategoryConstants.completedCategoryName)
               .map((cat) => cat.name)
               .toList();
           
@@ -154,9 +162,39 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
         _safeEmit(CategoryError('Không thể tạo danh mục với tên hệ thống'), emit);
         return;
       }
-      
+      // Basic color default and validation can be extended when color picker exists
+
       // Emit loading state
       _safeEmit(CategoryLoading(), emit);
+      
+      // Create new category entity
+      final now = DateTime.now();
+      final newCategory = Category(
+        id: 'custom_${now.millisecondsSinceEpoch}',
+        name: event.name.trim(),
+        color: '#607D8B', // Default color
+        isSystem: false,
+        userId: 'current_user', // TODO: Get from auth service
+        createdAt: now,
+        updatedAt: now,
+      );
+      
+      // Add to local service immediately for optimistic update
+      final categoryInfo = CategoryInfo(
+        id: newCategory.id,
+        name: newCategory.name,
+        color: newCategory.color,
+        icon: Icons.folder,
+        isSystem: newCategory.isSystem,
+      );
+      _categoryService.addCustomCategory(categoryInfo);
+      
+      // Update ListsData legacy lists for backward compatibility only
+      // Note: Don't call ListsData.addCustomCategory as it also calls _categoryService.addCustomCategory (causing duplicates)
+      if (!ListsData.lists.contains(newCategory.name)) {
+        ListsData.lists.insert(0, newCategory.name);
+        ListsData.listOptions.insert(0, newCategory.name);
+      }
       
       // Optimistic update: Add category to current list immediately (at the beginning)
       if (currentState is CategoriesLoaded) {
@@ -165,19 +203,6 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
         _safeEmit(CategoriesLoaded(updatedCategories), emit);
       }
       
-      // Create new category entity
-      final now = DateTime.now();
-      final newCategory = Category(
-        id: 'custom_${now.millisecondsSinceEpoch}',
-        name: event.name.trim(),
-        color: '#607D8B', // Default color
-        isDefault: false,
-        isSystem: false,
-        userId: 'current_user', // TODO: Get from auth service
-        createdAt: now,
-        updatedAt: now,
-      );
-      
       // Add to repository (Firebase)
       final result = await categoryRepository.addCategory(newCategory);
       
@@ -185,48 +210,32 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
         (failure) async {
           developer.log('Failed to add category to Firebase: ${failure.message}', name: 'CategoryBloc');
           
-          // Add to local service anyway
-          final categoryInfo = CategoryInfo(
-            id: newCategory.id,
-            name: newCategory.name,
-            color: newCategory.color,
-            icon: Icons.folder,
-            isDefault: newCategory.isDefault,
-            isSystem: newCategory.isSystem,
-          );
-          _categoryService.addCustomCategory(categoryInfo);
-          
-          // Update ListsData for backward compatibility
-          ListsData.addCustomCategory(newCategory.name);
-          
-          // Save to local storage
+          // Category already added optimistically to service and ListsData
+          // Just save to local storage
           await ListsData.saveCustomCategories();
           
           // Category already added optimistically, just show warning
           developer.log('Category added locally but not synced to server', name: 'CategoryBloc');
+          
+          // Notify all forms about new category
+          _categoryNotifier.notifyCategoryAdded(newCategory.name);
+          
+          // Keep CategoriesLoaded state; UI already updated optimistically
         },
         (_) async {
           developer.log('Category added to Firebase successfully', name: 'CategoryBloc');
           
-          // Add to local service
-          final categoryInfo = CategoryInfo(
-            id: newCategory.id,
-            name: newCategory.name,
-            color: newCategory.color,
-            icon: Icons.folder,
-            isDefault: newCategory.isDefault,
-            isSystem: newCategory.isSystem,
-          );
-          _categoryService.addCustomCategory(categoryInfo);
-          
-          // Update ListsData for backward compatibility
-          ListsData.addCustomCategory(newCategory.name);
-          
-          // Save to local storage
+          // Category already added optimistically to service and ListsData
+          // Just save to local storage
           await ListsData.saveCustomCategories();
           
           // Category already added optimistically, operation complete
           developer.log('Category operation completed successfully', name: 'CategoryBloc');
+          
+          // Notify all forms about new category
+          _categoryNotifier.notifyCategoryAdded(newCategory.name);
+          
+          // Keep CategoriesLoaded state; UI already updated optimistically
         },
       );
     } catch (e) {
@@ -242,26 +251,21 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
     try {
       developer.log('🗑️ Deleting category: ${event.name}', name: 'CategoryBloc');
       
-      // Check if it's a system or default category
+      // Check if it's a system category (ONLY system categories cannot be deleted)
       final category = _categoryService.getCategoryByName(event.name);
-      if (category != null && (category.isSystem || category.isDefault)) {
-        emit(CategoryError('Không thể xóa danh mục hệ thống hoặc mặc định'));
-        return;
-      }
-      
-      // Additional checks for core categories
-      if (event.name == CategoryConstants.completedCategoryName || 
-          event.name == CategoryConstants.allTasksCategoryName ||
-          event.name == 'Công việc' || 
-          event.name == 'Mặc định') {
+      if (category != null && category.isSystem) {
         emit(CategoryError('Không thể xóa danh mục hệ thống'));
         return;
       }
       
-      // Emit loading state
-      emit(CategoryLoading());
+      // Additional checks for system categories only
+      if (event.name == CategoryConstants.completedCategoryName || 
+          event.name == CategoryConstants.allTasksCategoryName) {
+        emit(CategoryError('Không thể xóa danh mục hệ thống'));
+        return;
+      }
       
-      // Optimistic update: Remove category from current list immediately
+      // Optimistic update: Remove category from current list immediately (no loading state)
       if (currentState is CategoriesLoaded) {
         final updatedCategories = List<String>.from(currentState.categories);
         updatedCategories.remove(event.name);
@@ -318,18 +322,16 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
         return;
       }
       
-      // Check if it's a system or default category
+      // Check if it's a system category (ONLY system categories cannot be edited)
       final oldCategory = _categoryService.getCategoryByName(event.oldName);
-      if (oldCategory != null && (oldCategory.isSystem || oldCategory.isDefault)) {
-        emit(CategoryError('Không thể chỉnh sửa danh mục hệ thống hoặc mặc định'));
+      if (oldCategory != null && oldCategory.isSystem) {
+        emit(CategoryError('Không thể chỉnh sửa danh mục hệ thống'));
         return;
       }
       
-      // Additional checks for core categories
+      // Additional checks for system categories only
       if (event.oldName == CategoryConstants.completedCategoryName || 
-          event.oldName == CategoryConstants.allTasksCategoryName ||
-          event.oldName == 'Công việc' || 
-          event.oldName == 'Mặc định') {
+          event.oldName == CategoryConstants.allTasksCategoryName) {
         emit(CategoryError('Không thể chỉnh sửa danh mục hệ thống'));
         return;
       }
@@ -340,11 +342,13 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
         emit(CategoryError('Danh mục "${event.newName.trim()}" đã tồn tại'));
         return;
       }
+      if (event.newName.trim() == CategoryConstants.completedCategoryName ||
+          event.newName.trim() == CategoryConstants.allTasksCategoryName) {
+        emit(CategoryError('Không thể đổi tên thành tên hệ thống'));
+        return;
+      }
       
-      // Emit loading state
-      emit(CategoryLoading());
-      
-      // Optimistic update: Replace old name with new name in current list
+      // Optimistic update: Replace old name with new name in current list immediately (no loading state)
       if (currentState is CategoriesLoaded) {
         final updatedCategories = List<String>.from(currentState.categories);
         final index = updatedCategories.indexOf(event.oldName);
@@ -360,10 +364,9 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
           id: oldCategory.id,
           name: event.newName.trim(),
           color: oldCategory.color,
-          isDefault: oldCategory.isDefault,
           isSystem: oldCategory.isSystem,
           userId: 'current_user', // TODO: Get from auth service
-          createdAt: DateTime.now(), // TODO: Keep original createdAt
+          createdAt: DateTime.now(), // Remote layer will preserve original createdAt
           updatedAt: DateTime.now(),
         );
         
@@ -378,6 +381,30 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
           (_) async {
             developer.log('Category updated in Firebase successfully', name: 'CategoryBloc');
             
+            // Update all tasks that belong to this category
+            developer.log('Updating all tasks with new category name: ${event.oldName} -> ${event.newName}', name: 'CategoryBloc');
+            try {
+              final updateTasksResult = await _updateTasksCategory(
+                UpdateTasksCategoryParams(
+                  oldCategoryName: event.oldName,
+                  newCategoryName: event.newName.trim(),
+                ),
+              );
+              
+              await updateTasksResult.fold(
+                (failure) async {
+                  developer.log('Failed to update tasks category: ${failure.message}', name: 'CategoryBloc');
+                  // Continue with category update even if task update fails
+                },
+                (_) async {
+                  developer.log('Successfully updated all tasks with new category name', name: 'CategoryBloc');
+                },
+              );
+            } catch (e) {
+              developer.log('Error updating tasks category: $e', name: 'CategoryBloc');
+              // Continue with category update even if task update fails
+            }
+            
             // Update local service
             _categoryService.removeCustomCategory(oldCategory.id);
             final updatedCategoryInfo = CategoryInfo(
@@ -385,7 +412,6 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
               name: updatedCategory.name,
               color: updatedCategory.color,
               icon: Icons.folder,
-              isDefault: updatedCategory.isDefault,
               isSystem: updatedCategory.isSystem,
             );
             _categoryService.addCustomCategory(updatedCategoryInfo);
@@ -405,6 +431,12 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
             
             // Category already updated optimistically, operation complete
             developer.log('Category edit operation completed successfully', name: 'CategoryBloc');
+            
+            // Notify all forms about category rename
+            _categoryNotifier.notifyCategoryUpdated(event.oldName, event.newName.trim());
+            
+            // Emit success to allow other parts (e.g., Task UI) to refresh
+            _safeEmit(const CategoryUpdated('Đã cập nhật danh mục thành công'), emit);
           },
         );
       } else {

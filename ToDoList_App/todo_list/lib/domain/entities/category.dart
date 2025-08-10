@@ -4,7 +4,6 @@ class Category extends Equatable {
   final String id;
   final String name;
   final String color;
-  final bool isDefault;
   final bool isSystem;
   final String userId;
   final DateTime createdAt;
@@ -14,7 +13,6 @@ class Category extends Equatable {
     required this.id,
     required this.name,
     required this.color,
-    required this.isDefault,
     required this.isSystem,
     required this.userId,
     required this.createdAt,
@@ -25,7 +23,6 @@ class Category extends Equatable {
     String? id,
     String? name,
     String? color,
-    bool? isDefault,
     bool? isSystem,
     String? userId,
     DateTime? createdAt,
@@ -35,7 +32,6 @@ class Category extends Equatable {
       id: id ?? this.id,
       name: name ?? this.name,
       color: color ?? this.color,
-      isDefault: isDefault ?? this.isDefault,
       isSystem: isSystem ?? this.isSystem,
       userId: userId ?? this.userId,
       createdAt: createdAt ?? this.createdAt,
@@ -48,7 +44,6 @@ class Category extends Equatable {
     id,
     name,
     color,
-    isDefault,
     isSystem,
     userId,
     createdAt,

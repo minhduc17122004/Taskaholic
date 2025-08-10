@@ -7,6 +7,9 @@ abstract class TaskLocalDataSource {
   Future<List<TaskModel>> getCompletedTasks();
   Future<void> cacheTasks(List<TaskModel> tasks);
   Future<void> cacheCompletedTasks(List<TaskModel> tasks);
+  Future<void> clearTasks();
+  Future<void> clearCompletedTasks();
+  Future<void> clearAllTaskCaches();
 }
 
 class TaskLocalDataSourceImpl implements TaskLocalDataSource {
@@ -44,5 +47,21 @@ class TaskLocalDataSourceImpl implements TaskLocalDataSource {
   Future<void> cacheCompletedTasks(List<TaskModel> tasks) async {
     final jsonString = json.encode(tasks.map((e) => e.toJson()).toList());
     await sharedPreferences.setString('completedTasks', jsonString);
+  }
+
+  @override
+  Future<void> clearTasks() async {
+    await sharedPreferences.remove('tasks');
+  }
+
+  @override
+  Future<void> clearCompletedTasks() async {
+    await sharedPreferences.remove('completedTasks');
+  }
+
+  @override
+  Future<void> clearAllTaskCaches() async {
+    await clearTasks();
+    await clearCompletedTasks();
   }
 } 

@@ -64,12 +64,8 @@ class _EnhancedCategoryScreenState extends State<EnhancedCategoryScreen> {
       }
     } catch (e) {
       debugPrint('Error loading categories: $e');
-      // Retry after a short delay
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          _loadCategoriesWithSafety();
-        }
-      });
+      // Don't auto-retry to avoid endless reload cycles
+      // User can manually refresh if needed using pull-to-refresh
     }
   }
   
@@ -392,6 +388,10 @@ class _EnhancedCategoryScreenState extends State<EnhancedCategoryScreen> {
                 behavior: SnackBarBehavior.floating,
               ),
             );
+            // No auto-reload on error - user can pull-to-refresh if needed
+          } else if (state is CategoryAdded || state is CategoryUpdated) {
+            // These states indicate successful operations
+            // UI already updated optimistically, no reload needed
           }
         },
         builder: (context, state) {
@@ -431,7 +431,7 @@ class _EnhancedCategoryScreenState extends State<EnhancedCategoryScreen> {
             return BlocBuilder<TaskBloc, TaskState>(
               builder: (context, taskState) {
                 return ListView.builder(
-                        padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   itemCount: filteredCategories.length,
                   itemBuilder: (context, index) {
                     final category = filteredCategories[index];
@@ -442,7 +442,6 @@ class _EnhancedCategoryScreenState extends State<EnhancedCategoryScreen> {
                     final categoryColor = ListsData.getCategoryColor(category);
                     final categoryIcon = ListsData.getCategoryIcon(category);
                     final isSystemCategory = category == 'Công việc' || 
-                                           category == 'Mặc định' ||
                                            category == 'Cá nhân' ||
                                            category == 'Học tập' ||
                                            category == 'Sức khỏe' ||
@@ -509,23 +508,7 @@ class _EnhancedCategoryScreenState extends State<EnhancedCategoryScreen> {
                                 onPressed: () => _showDeleteCategoryDialog(category),
                               ),
                             ] else ...[
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: categoryColor.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Text(
-                                  'Mặc định',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
+                              // System category indicator removed
                             ],
                           ],
                         ),
@@ -556,7 +539,7 @@ class _EnhancedCategoryScreenState extends State<EnhancedCategoryScreen> {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Không thể tải danh mục',
+                    'Không thể tải danh mục ',
                     style: TextStyle(color: Colors.white, fontSize: 18),
                   ),
                   const SizedBox(height: 8),

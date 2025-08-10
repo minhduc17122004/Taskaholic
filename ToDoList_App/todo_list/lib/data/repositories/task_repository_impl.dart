@@ -29,26 +29,14 @@ class TaskRepositoryImpl implements TaskRepository {
         developer.log('Đang đồng bộ với Firestore', name: 'TaskRepository');
         final remoteTasks = await remoteDataSource.getTasks();
 
-        // Merge local and remote tasks, prioritizing remote for existing IDs
-        final Map<String, TaskModel> mergedTasks = {};
+        // Use remote tasks only to prevent cross-account leakage
+        final finalTasks = remoteTasks;
 
-        // First add all local tasks
-        for (var task in localTasks) {
-          mergedTasks[task.id] = task;
-        }
-
-        // Then override with remote tasks (which have Firebase IDs)
-        for (var task in remoteTasks) {
-          mergedTasks[task.id] = task;
-        }
-
-        final finalTasks = mergedTasks.values.toList();
-
-        // Cập nhật cache local với dữ liệu đã merge
+        // Overwrite local cache with remote-only data
         await localDataSource.cacheTasks(finalTasks);
 
         developer.log(
-          'Đã đồng bộ và merge ${finalTasks.length} công việc từ Firestore',
+          'Đã đồng bộ ${finalTasks.length} công việc từ Firestore (remote only)',
           name: 'TaskRepository',
         );
         return Right(finalTasks);
@@ -177,10 +165,20 @@ class TaskRepositoryImpl implements TaskRepository {
       developer.log('Đang cập nhật task: ${task.id}', name: 'TaskRepository');
       final taskModel = TaskModel.fromEntity(task);
 
-      // Cập nhật trên Firestore
-      await remoteDataSource.updateTask(taskModel);
+      // Log task data before update
+      developer.log('Task data being updated: ${taskModel.toJson()}', name: 'TaskRepository');
 
-      // Cập nhật trong local cache
+      // Cập nhật trên Firestore FIRST and wait for completion
+      try {
+        await remoteDataSource.updateTask(taskModel);
+        developer.log('✅ Remote update thành công', name: 'TaskRepository');
+      } catch (remoteError) {
+        developer.log('❌ Remote update thất bại: $remoteError', name: 'TaskRepository');
+        // Don't update local cache if remote fails
+        return Left(ServerFailure(message: 'Không thể cập nhật task trên server: $remoteError'));
+      }
+
+      // Only update local cache after remote success
       final tasks = await localDataSource.getTasks();
       final completedTasks = await localDataSource.getCompletedTasks();
 
@@ -188,6 +186,7 @@ class TaskRepositoryImpl implements TaskRepository {
       if (taskIndex != -1) {
         tasks[taskIndex] = taskModel;
         await localDataSource.cacheTasks(tasks);
+        developer.log('✅ Updated task in active tasks cache', name: 'TaskRepository');
       } else {
         final completedIndex = completedTasks.indexWhere(
           (t) => t.id == task.id,
@@ -195,13 +194,18 @@ class TaskRepositoryImpl implements TaskRepository {
         if (completedIndex != -1) {
           completedTasks[completedIndex] = taskModel;
           await localDataSource.cacheCompletedTasks(completedTasks);
+          developer.log('✅ Updated task in completed tasks cache', name: 'TaskRepository');
+        } else {
+          developer.log('⚠️ Task not found in either cache, adding to active tasks', name: 'TaskRepository');
+          tasks.add(taskModel);
+          await localDataSource.cacheTasks(tasks);
         }
       }
 
-      developer.log('Đã cập nhật task thành công', name: 'TaskRepository');
+      developer.log('✅ Đã cập nhật task thành công (remote + local)', name: 'TaskRepository');
       return const Right(unit);
-    } catch (e) {
-      developer.log('Lỗi khi cập nhật task: $e', name: 'TaskRepository');
+    } catch (e, s) {
+      developer.log('❌ Lỗi khi cập nhật task: $e', name: 'TaskRepository', error: e, stackTrace: s);
       return Left(ServerFailure(message: 'Không thể cập nhật task: $e'));
     }
   }

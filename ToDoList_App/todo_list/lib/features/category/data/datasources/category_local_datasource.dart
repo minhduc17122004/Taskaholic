@@ -198,12 +198,6 @@ class CategoryLocalDataSourceImpl implements CategoryLocalDataSource {
         taskCount: 0,
         isSystem: true,
       ),
-      const CategoryModel(
-        id: 'default',
-        name: 'Mặc định',
-        taskCount: 0,
-        isSystem: true,
-      ),
     ];
   }
 } 

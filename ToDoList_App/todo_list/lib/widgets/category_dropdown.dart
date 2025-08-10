@@ -25,7 +25,7 @@ class CategoryDropdown extends StatelessWidget {
       categories = ListsData.getAddTaskListOptions();
       // Đảm bảo luôn có ít nhất một danh mục
       if (categories.isEmpty) {
-        categories.add('Mặc định');
+        categories.add('Công việc');
       }
       
       // Đảm bảo selectedCategory nằm trong danh sách
@@ -36,7 +36,7 @@ class CategoryDropdown extends StatelessWidget {
       }
     } catch (e) {
       // Trường hợp lỗi, sử dụng danh mục mặc định
-      categories = ['Mặc định'];
+      categories = ['Công việc'];
     }
 
     return Container(
