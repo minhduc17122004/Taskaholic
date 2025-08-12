@@ -1154,9 +1154,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
             );
           } else {
             return const Scaffold(
-              body: Center(
-                child: Text('Đã xảy ra lỗi'),
-              ),
+              body: SizedBox(),
             );
           }
         },

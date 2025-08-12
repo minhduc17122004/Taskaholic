@@ -30,14 +30,39 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on firebase_auth.FirebaseAuthException catch (e) {
       String message;
       switch (e.code) {
+        case 'invalid-email':
+          message = 'Email nhập không đúng định dạng.';
+          break;
         case 'user-not-found':
-          message = 'Không tìm thấy tài khoản với email này';
+          message = 'Không tồn tại tài khoản với email đã nhập.';
           break;
         case 'wrong-password':
-          message = 'Mật khẩu không đúng';
+          message = 'Mật khẩu không đúng.';
           break;
-        case 'invalid-email':
-          message = 'Email không hợp lệ';
+        case 'invalid-password':
+          message = 'Mật khẩu không hợp lệ (ít hơn 6 ký tự).';
+          break;
+        case 'id-token-expired':
+          message = 'Token đăng nhập đã hết hạn.';
+          break;
+        case 'id-token-revoked':
+          message = 'Token đã bị thu hồi.';
+          break;
+        case 'invalid-credential':
+          message = 'Thông tin đăng nhập không hợp lệ (token OAuth, credential bị sai hoặc hết hạn).';
+          break;
+        case 'too-many-requests':
+          message = 'Đăng nhập sai nhiều lần dẫn đến tạm khóa.';
+          break;
+        case 'internal-error':
+          message = 'Lỗi từ phía máy chủ Authentication.';
+          break;
+        case 'operation-not-allowed':
+        case 'operation-not-allowed':
+          message = 'Phương thức đăng nhập chưa được bật trên Firebase.';
+          break;
+        case 'invalid-id-token':
+          message = 'ID token không phải dạng hợp lệ của Firebase.';
           break;
         case 'user-disabled':
           message = 'Tài khoản đã bị vô hiệu hóa';

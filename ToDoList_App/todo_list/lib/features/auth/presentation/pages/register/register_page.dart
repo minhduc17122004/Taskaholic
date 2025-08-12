@@ -85,11 +85,26 @@ class _RegisterPageState extends State<RegisterPage> {
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Email',
                         labelStyle: TextStyle(color: AppColors.textPrimaryDark),
                         prefixIcon: Icon(Icons.email),
-                        border: OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.inputBackgroundDark ),
+                            ),
+                        focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Color.fromARGB(255, 1, 115, 182),width: 2),
+                            ),
+                        errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Colors.red),
+                            ),
+                        focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Colors.red),
+                            ),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -110,7 +125,14 @@ class _RegisterPageState extends State<RegisterPage> {
                         labelText: 'Mật khẩu',
                         labelStyle: TextStyle(color: AppColors.textPrimaryDark),
                         prefixIcon: const Icon(Icons.lock),
-                        border: const OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.inputBackgroundDark ),
+                            ),
+                        focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Color.fromARGB(255, 1, 115, 182),width: 2),
+                            ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _isPasswordVisible
@@ -142,7 +164,14 @@ class _RegisterPageState extends State<RegisterPage> {
                         labelText: 'Xác nhận mật khẩu',
                         labelStyle: TextStyle(color: AppColors.textPrimaryDark),
                         prefixIcon: const Icon(Icons.lock_outline),
-                        border: const OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.inputBackgroundDark ),
+                            ),
+                        focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Color.fromARGB(255, 1, 115, 182),width: 2),
+                            ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _isConfirmPasswordVisible
