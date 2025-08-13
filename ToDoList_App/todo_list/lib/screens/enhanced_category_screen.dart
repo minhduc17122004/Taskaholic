@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:todo_list/core/theme/app_colors.dart';
+import 'package:taskaholic/core/theme/app_colors.dart';
 import '../presentation/bloc/task/task_bloc.dart';
 import '../presentation/bloc/task/task_state.dart';
 import '../presentation/pages/category/category_bloc.dart';

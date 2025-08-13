@@ -2,7 +2,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:todo_list/features/auth/presentation/pages/login/login_page.dart';
+import 'package:taskaholic/features/auth/presentation/pages/login/login_page.dart';
 import '../presentation/bloc/auth/auth_bloc.dart';
 import '../presentation/bloc/auth/auth_event.dart';
 import 'debug_screen.dart';

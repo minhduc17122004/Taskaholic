@@ -1,6 +1,6 @@
-# todo_list
+# Taskaholic
 
-A new Flutter project.
+A powerful task management Flutter app for productivity enthusiasts.
 
 ## Getting Started
 
