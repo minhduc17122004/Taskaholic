@@ -21,6 +21,13 @@ class _LoginPageState extends State<LoginPage> {
   bool _isPasswordVisible = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Clear any previous auth error when entering login page
+    context.read<AuthBloc>().add(ClearAuthErrorEvent());
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -48,7 +55,10 @@ class _LoginPageState extends State<LoginPage> {
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (_) => const HomePage()),
             );
-          }
+          } else if (state is AuthError) {
+
+            _passwordController.clear();
+          } 
         },
         builder: (context, state) {
           return SafeArea(
@@ -101,7 +111,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             focusedErrorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Colors.red),
+                              borderSide: const BorderSide(color: Color.fromARGB(255, 1, 115, 182),width: 2),
                             ),
                           ),
                           validator: (value) {
@@ -149,7 +159,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             focusedErrorBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Colors.red),
+                              borderSide: const BorderSide(color: Color.fromARGB(255, 1, 115, 182),width: 2),
                             ),
                           ),
                           validator: (value) {
@@ -236,7 +246,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             TextButton(
                               onPressed: () {
-                                Navigator.of(context).push(
+                                Navigator.of(context).pushReplacement(
                                   MaterialPageRoute(
                                     builder: (_) => const RegisterPage(),
                                   ),

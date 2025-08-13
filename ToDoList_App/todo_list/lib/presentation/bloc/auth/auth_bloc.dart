@@ -30,6 +30,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignUpEvent>(_onSignUp);
     on<SignOutEvent>(_onSignOut);
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
+    on<ClearAuthErrorEvent>(_onClearAuthError);
   }
 
   Future<void> _onSignIn(SignInEvent event, Emitter<AuthState> emit) async {
@@ -129,6 +130,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
       },
     );
+  }
+
+  void _onClearAuthError(ClearAuthErrorEvent event, Emitter<AuthState> emit) {
+    emit(AuthInitial());
   }
 
   @override

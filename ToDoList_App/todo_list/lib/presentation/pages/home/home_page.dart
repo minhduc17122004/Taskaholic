@@ -271,7 +271,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                     Container(
                       padding: const EdgeInsets.all(30),
                       decoration: BoxDecoration(
-                        color: AppColors.backgroundDark.withValues(alpha: 0.3),
+                        color: AppColors.backgroundDark.withValues(alpha: 0.9),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(

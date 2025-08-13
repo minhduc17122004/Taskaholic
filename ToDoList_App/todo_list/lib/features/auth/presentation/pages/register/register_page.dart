@@ -22,6 +22,13 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isConfirmPasswordVisible = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Clear any previous auth error when entering register page
+    context.read<AuthBloc>().add(ClearAuthErrorEvent());
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -103,7 +110,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                         focusedErrorBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Colors.red),
+                              borderSide: const BorderSide(color: Color.fromARGB(255, 1, 115, 182),width: 2),
                             ),
                       ),
                       validator: (value) {
@@ -128,6 +135,14 @@ class _RegisterPageState extends State<RegisterPage> {
                         enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                               borderSide: const BorderSide(color: AppColors.inputBackgroundDark ),
+                            ),
+                        errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Colors.red),
+                            ),
+                        focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color.fromARGB(255, 1, 115, 182),width: 2),
                             ),
                         focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -171,6 +186,14 @@ class _RegisterPageState extends State<RegisterPage> {
                         focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide(color: Color.fromARGB(255, 1, 115, 182),width: 2),
+                            ),
+                        errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Colors.red),
+                            ),
+                        focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color.fromARGB(255, 1, 115, 182),width: 2),
                             ),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -236,7 +259,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.of(context).push(
+                            Navigator.of(context).pushReplacement(
                               MaterialPageRoute(builder: (_) => const LoginPage()),
                             );
                           },
