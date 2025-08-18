@@ -8,6 +8,7 @@ import '../presentation/bloc/task/task_event.dart';
 import '../presentation/bloc/task/task_state.dart';
 import '../utils/date_format_utils.dart';
 import '../widgets/reactive_category_dropdown.dart';
+import '../core/utils/toast_helper.dart';
 
 class AddTaskScreen extends StatefulWidget {
   final Task? existingTask;
@@ -34,6 +35,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   String? _taskId;
   bool _isLoading = false;
   String? _categoryChanged; // Track if category was changed for navigation
+  bool _hasChangesSaved = false; // Track if any changes were actually saved
 
   final List<String> _repeatOptions = [
     'Không lặp lại',
@@ -229,14 +231,15 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     }
 
     if (_taskController.text.trim().isEmpty) {
-      _showErrorMessage('Vui lòng nhập tiêu đề nhiệm vụ');
+      ToastHelper.showErrorToast(context, 'Vui lòng nhập tiêu đề nhiệm vụ');
       return;
     }
 
     // Check if there are any changes when editing
     if (widget.existingTask != null && !hasUnsavedChanges) {
-      _showSuccessMessage('Không có thay đổi nào để lưu');
-      Navigator.of(context).pop();
+      ToastHelper.showInfoToast(context, 'Không có thay đổi nào để lưu');
+      // Return null to indicate no changes were made
+      Navigator.of(context).pop(null);
       return;
     }
 
@@ -282,7 +285,8 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         await Future.delayed(const Duration(milliseconds: 1000));
         
         if (mounted) {
-          _showSuccessMessage('Nhiệm vụ đã được cập nhật');
+          ToastHelper.showSuccessToast(context, 'Nhiệm vụ đã được cập nhật');
+          _hasChangesSaved = true; // Mark that changes were saved
           
           // Check if category was changed to navigate to the new category
           if (list != originalTask.list) {
@@ -330,7 +334,8 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         await Future.delayed(const Duration(milliseconds: 1000));
         
         if (mounted) {
-          _showSuccessMessage('Nhiệm vụ đã được tạo');
+          ToastHelper.showSuccessToast(context, 'Nhiệm vụ đã được tạo');
+          _hasChangesSaved = true; // Mark that changes were saved
           
           // Set the category for navigation (for new tasks, always navigate to the created category)
           _categoryChanged = list;
@@ -342,11 +347,15 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       await Future.delayed(const Duration(milliseconds: 1500));
       
       if (mounted) {
-        // Return the updated category if it was changed
-        Navigator.of(context).pop(_categoryChanged);
+        // Return the updated category if it was changed, or a special marker if no changes were saved
+        if (_hasChangesSaved) {
+          Navigator.of(context).pop(_categoryChanged);
+        } else {
+          Navigator.of(context).pop(null);
+        }
       }
     } catch (e) {
-      _showErrorMessage('Lỗi khi lưu nhiệm vụ: $e');
+      ToastHelper.showErrorToast(context, 'Lỗi khi lưu nhiệm vụ: $e');
       developer.log('Error saving task: $e', name: 'AddTaskScreen');
     } finally {
       if (mounted) {
@@ -357,42 +366,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     }
   }
 
-  void _showErrorMessage(String message) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error_outline, color: Colors.white),
-              const SizedBox(width: 8),
-              Expanded(child: Text(message)),
-            ],
-          ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
 
-  void _showSuccessMessage(String message) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 8),
-              Expanded(child: Text(message)),
-            ],
-          ),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

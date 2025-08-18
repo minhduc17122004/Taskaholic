@@ -17,6 +17,7 @@ import '../../../screens/add_task_screen.dart';
 import '../../../screens/enhanced_category_screen.dart';
 import '../../../screens/account_screen.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/toast_helper.dart';
 import '../../../data/lists_data.dart';
 
 /// HomePage - Màn hình chính của ứng dụng sử dụng BLoC pattern
@@ -84,41 +85,22 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   Widget _buildHomeContent(String currentList) {
     return BlocConsumer<TaskBloc, TaskState>(
       listener: (context, state) {
-        if (state is TaskError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.error,
-              duration: const Duration(seconds: 3),
-              action: SnackBarAction(
-                label: 'OK',
-                textColor: Colors.white,
-                onPressed: () {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                },
-              ),
-            ),
-          );
+        if (state is TaskLoading) {
+          // Show loading toast with key
+          ToastHelper.showLoadingToast(context, 'Đang xử lý...', key: 'task_loading');
+        } else if (state is TaskError) {
+          // Cancel loading toast when error occurs
+          ToastHelper.cancelLoadingToast('task_loading');
+          ToastHelper.showErrorToast(context, state.message);
           context.read<TaskBloc>().add(const LoadTasks(forceRefresh: true));
         } else if (state is TaskActionSuccess) {
-          // Show success feedback for task operations (including toggle)
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.check_circle, color: Colors.white, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(state.message)),
-                ],
-              ),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 1),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          );
+          // Cancel loading toast when success
+          ToastHelper.cancelLoadingToast('task_loading');
+          // Show success feedback for task operations
+          ToastHelper.showSuccessToast(context, state.message);
+        } else if (state is TasksLoaded) {
+          // Cancel loading toast when tasks are loaded
+          ToastHelper.cancelLoadingToast('task_loading');
         }
       },
       builder: (context, state) {
@@ -328,12 +310,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                 ),
               );
         } else {
-          return const Center(
-            child: Text(
-              'Không có dữ liệu',
-              style: TextStyle(color: Colors.white),
-            ),
-          );
+          return const SizedBox.shrink();
         }
       },
     );
@@ -464,12 +441,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
             ),
           );
         } else {
-          return const Center(
-            child: Text(
-              'Không có dữ liệu',
-              style: TextStyle(color: Colors.white),
-            ),
-          );
+          return const SizedBox.shrink();
         }
       },
     );
@@ -655,14 +627,19 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                 // Reload tasks when returning from task detail screen
                 if (mounted) {
                   Future.delayed(const Duration(milliseconds: 300), () {
-                    context.read<TaskBloc>().add(const LoadTasks(forceRefresh: true));
-                    
-                                          // If task category was changed, navigate to the new category
-                      if (newCategory != null && newCategory is String) {
+                    // Only force refresh if there were actual changes (newCategory is not null)
+                    if (newCategory != null) {
+                      context.read<TaskBloc>().add(const LoadTasks(forceRefresh: true));
+                      
+                      // If task category was changed, navigate to the new category
+                      if (newCategory is String) {
                         developer.log('Task category changed to: $newCategory, navigating...', name: 'HomePage');
                         // Update home bloc to switch to the new category
                         context.read<HomeBloc>().add(ChangeCurrentListEvent(newCategory));
                       }
+                    } else {
+                      developer.log('No changes made, skipping refresh', name: 'HomePage');
+                    }
                   });
                 }
               }).catchError((error) {
@@ -782,6 +759,21 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                     ],
                   ),
                 ),
+                // Delete button
+                GestureDetector(
+                  onTap: () {
+                    _showDeleteConfirmation(task);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.redAccent,
+                      size: 18,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
                 // Visual indicator that task is tappable
                 const Icon(
                   Icons.arrow_forward_ios,
@@ -794,6 +786,28 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         ),
       ),
     );
+  }
+
+  /// Hiển thị dialog xác nhận xóa task
+  void _showDeleteConfirmation(Task task) {
+    ToastHelper.showDeleteConfirmationToast(
+      context,
+      'Bạn có chắc muốn xóa nhiệm vụ "${task.title}"?',
+      () {
+        // Xác nhận xóa
+        context.read<TaskBloc>().add(DeleteTaskEvent(task.id));
+        ToastHelper.showLoadingToast(context, 'Đang xóa nhiệm vụ...', key: 'delete_task');
+      },
+      () {
+        // Hủy xóa
+        ToastHelper.showInfoToast(context, 'Đã hủy xóa nhiệm vụ');
+      },
+    );
+  }
+
+  /// Hủy tất cả loading toasts
+  void _cancelAllLoadingToasts() {
+    ToastHelper.cancelAllLoadingToasts();
   }
 
   /// Xử lý sự kiện Add Task - Navigate đến AddTaskScreen
@@ -864,19 +878,24 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
           },
         ),
       ).then((newCategory) {
-        developer.log('Returned from AddTaskScreen, reloading tasks', name: 'HomePage');
+        developer.log('Returned from AddTaskScreen, checking for changes', name: 'HomePage');
         // Reload tasks sau khi quay về
         if (mounted) {
           Future.delayed(const Duration(milliseconds: 300), () {
             if (mounted) {
-              developer.log('Triggering task reload', name: 'HomePage');
-              context.read<TaskBloc>().add(const LoadTasks(forceRefresh: true));
-              
-              // If task category was changed during creation, navigate to that category
-              if (newCategory != null && newCategory is String) {
-                developer.log('New task created in category: $newCategory, navigating...', name: 'HomePage');
-                // Update home bloc to switch to the new category
-                context.read<HomeBloc>().add(ChangeCurrentListEvent(newCategory));
+              // Only force refresh if there were actual changes (newCategory is not null)
+              if (newCategory != null) {
+                developer.log('Changes detected, triggering task reload', name: 'HomePage');
+                context.read<TaskBloc>().add(const LoadTasks(forceRefresh: true));
+                
+                // If task category was changed during creation, navigate to that category
+                if (newCategory is String) {
+                  developer.log('New task created in category: $newCategory, navigating...', name: 'HomePage');
+                  // Update home bloc to switch to the new category
+                  context.read<HomeBloc>().add(ChangeCurrentListEvent(newCategory));
+                }
+              } else {
+                developer.log('No changes made, skipping refresh', name: 'HomePage');
               }
             }
           });
@@ -1091,6 +1110,14 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                         ),
                         builder: (context) => const NotificationsBottomSheet(),
                       );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.clear_all, color: Colors.white, size: 24),
+                    tooltip: 'Hủy tất cả toast',
+                    onPressed: () {
+                      _cancelAllLoadingToasts();
+                      ToastHelper.showInfoToast(context, 'Đã hủy tất cả toast đang xử lý');
                     },
                   ),
                 ],

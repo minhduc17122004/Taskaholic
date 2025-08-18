@@ -94,10 +94,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
       },
       (_) async {
         developer.log('Đã thêm công việc thành công', name: 'TaskBloc');
-        
-        // Emit success state first
-        if (!emit.isDone) emit(const TaskActionSuccess('Đã thêm công việc thành công'));
-        
+                
         // Lên lịch thông báo nếu task có thời gian
         _scheduleNotificationForTask(event.task);
         
@@ -125,10 +122,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
       },
       (_) async {
         developer.log('Đã cập nhật công việc thành công', name: 'TaskBloc');
-        
-        // Emit success state first
-        if (!emit.isDone) emit(const TaskActionSuccess('Đã cập nhật công việc thành công'));
-        
+    
         // Hủy thông báo cũ và lên lịch lại nếu cần
         await _notificationService.cancelNotification(_getNotificationId(event.task.id));
         _scheduleNotificationForTask(event.task);

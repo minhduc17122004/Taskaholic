@@ -104,7 +104,6 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
             emit(TaskError(failure.message));
           },
           (_) {
-            emit(TaskActionSuccess('Đã cập nhật công việc thành công'));
             
             // Hủy thông báo cũ và lên lịch lại nếu cần
             _notificationService.cancelNotification(_getNotificationId(event.task.id));
