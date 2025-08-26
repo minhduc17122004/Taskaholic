@@ -46,3 +46,4 @@ app.*.map.json
 
 # Cursor rule
 rules/rule.mdc
+.cursor/rules/
