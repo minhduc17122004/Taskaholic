@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "549509831402",
+    "project_id": "taskaholics",
+    "storage_bucket": "taskaholics.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:549509831402:android:21f3d1cbd729165dec5593",
+        "android_client_info": {
+          "package_name": "com.example.taskaholic"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWfZJwpbLU3g9Yz_JAYvuU2UCINFtaR2g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
