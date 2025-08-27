@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:taskaholic/core/themes/app_color.dart';
+import 'package:taskaholic/core/utils/task_date_utils.dart';
 import 'package:taskaholic/features/task/domain/entities/task_entity.dart';
 import 'task_card.dart';
 
@@ -20,9 +21,7 @@ class TaskGroupView extends StatelessWidget {
   });
 
   String _getFormattedDate() {
-    final now = DateTime.now();
-    final weekday = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'][now.weekday % 7];
-    return '$weekday, ${now.day}/${now.month}/${now.year}';
+    return TaskDateUtils.getFormattedDate();
   }
 
   @override

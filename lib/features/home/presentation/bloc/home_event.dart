@@ -15,3 +15,12 @@ class ChangeTabEvent extends HomeEvent {
   @override
   List<Object> get props => [index];
 }
+
+class ChangeCategoryEvent extends HomeEvent {
+  final String categoryId;
+
+  const ChangeCategoryEvent(this.categoryId);
+
+  @override
+  List<Object> get props => [categoryId];
+}

@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taskaholic/core/themes/app_color.dart';
+import 'package:taskaholic/core/utils/category_constants.dart';
 import 'package:taskaholic/features/home/presentation/widgets/app_bar.dart';
+import 'package:taskaholic/features/home/presentation/widgets/category_title_dropdown.dart';
 import 'package:taskaholic/features/home/presentation/widgets/empty_state.dart';
 import 'package:taskaholic/features/home/presentation/bloc/home_bloc.dart';
 import 'package:taskaholic/features/home/presentation/bloc/home_event.dart';
 import 'package:taskaholic/features/home/presentation/bloc/home_state.dart';
 import 'package:taskaholic/features/home/presentation/pages/completed_page.dart';
+import 'package:taskaholic/features/category/presentation/pages/category_page.dart';
+import 'package:taskaholic/features/category/presentation/widgets/add_category_dialog.dart';
+import 'package:taskaholic/features/task/presentation/pages/task_form_page.dart';
 import 'package:taskaholic/shared/widgets/default_bottom_bar.dart';
 
 class HomePage extends StatelessWidget {
@@ -38,7 +43,7 @@ class _HomePageContent extends StatelessWidget {
       case 1:
         return const CompletedContent();
       case 2:
-        return const _CategoryTab();
+        return const CategoryContent();
       case 3:
         return const _SettingsTab();
       default:
@@ -67,7 +72,17 @@ class _HomePageContent extends StatelessWidget {
       builder: (context, state) {
         return Scaffold(
           appBar: CustomAppBar(
-            title: state.currentIndex == 0 ? 'Danh sách tất cả' : _titles[state.currentIndex],
+            title: (state.currentIndex == 0 || state.currentIndex == 1) ? null : _titles[state.currentIndex],
+            titleWidget: (state.currentIndex == 0 || state.currentIndex == 1) 
+                ? CategoryTitleDropdown(
+                    selectedCategoryId: state.selectedCategoryId,
+                    onCategoryChanged: (categoryId, categoryName) {
+                      context.read<HomeBloc>().add(ChangeCategoryEvent(categoryId));
+                    },
+                    showTaskCount: true,
+                    taskCount: 12, // TODO: Get actual task count from state
+                  )
+                : null,
             showBackButton: false,
             leadingIcon: _getLeadingIcon(state.currentIndex),
             actions: [
@@ -91,6 +106,23 @@ class _HomePageContent extends StatelessWidget {
                   icon: const Icon(Icons.notifications, color: AppColors.textOnPrimary),
                 ),
               ],
+              if (state.currentIndex == 2) ...[
+                IconButton(
+                  onPressed: () {
+                    // TODO: Implement category search
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Tìm kiếm danh mục')),
+                    );
+                  },
+                  icon: const Icon(Icons.search, color: AppColors.textOnPrimary),
+                  tooltip: 'Tìm kiếm danh mục',
+                ),
+                IconButton(
+                  onPressed: () => _showAddCategoryDialog(context),
+                  icon: const Icon(Icons.add, color: AppColors.textOnPrimary),
+                  tooltip: 'Thêm danh mục',
+                ),
+              ],
             ],
           ),
           body: _getPageAtIndex(state.currentIndex),
@@ -104,63 +136,56 @@ class _HomePageContent extends StatelessWidget {
       },
     );
   }
+
+  void _showAddCategoryDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AddCategoryDialog(
+        onCategoryAdded: (categoryName) {
+          // TODO: Add category to state/bloc
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Đã thêm danh mục: $categoryName'),
+              backgroundColor: AppColors.primary,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
 
 class _HomeTab extends StatelessWidget {
   const _HomeTab();
 
-  void _handleAddTask(BuildContext context) {
-    // TODO: Navigate to add task page
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Thêm nhiệm vụ mới'),
-        backgroundColor: AppColors.primary,
+  void _handleAddTask(BuildContext context, String selectedCategoryId) {
+    // Convert category ID to real category name, or null if 'all'
+    String? initialCategory;
+    if (selectedCategoryId != 'all') {
+      final categoryData = CategoryConstants.getCategoryById(selectedCategoryId);
+      initialCategory = categoryData?.name;
+    }
+    
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TaskFormPage(
+          initialCategory: initialCategory,
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return EmptyState(
-      currentList: 'Tất cả',
-      onAddTask: () => _handleAddTask(context),
-    );
-  }
-}
-// TODO: Implement category tab
-class _CategoryTab extends StatelessWidget {
-  const _CategoryTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.category,
-            size: 80,
-            color: AppColors.primary,
-          ),
-          SizedBox(height: 20),
-          Text(
-            'Danh mục',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimaryDark,
-            ),
-          ),
-          SizedBox(height: 10),
-          Text(
-            'Quản lý danh mục công việc',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppColors.textSecondaryDark,
-            ),
-          ),
-        ],
-      ),
+    return BlocBuilder<HomeBloc, HomeState>(
+      builder: (context, state) {
+        return EmptyState(
+          currentList: 'Tất cả',
+          onAddTask: () => _handleAddTask(context, state.selectedCategoryId),
+        );
+      },
     );
   }
 }

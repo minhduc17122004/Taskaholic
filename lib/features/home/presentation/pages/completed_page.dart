@@ -1,27 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:taskaholic/core/themes/app_color.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:taskaholic/core/utils/category_constants.dart';
 import 'package:taskaholic/features/home/presentation/widgets/empty_state.dart';
+import 'package:taskaholic/features/home/presentation/bloc/home_bloc.dart';
+import 'package:taskaholic/features/home/presentation/bloc/home_state.dart';
+import 'package:taskaholic/features/task/presentation/pages/task_form_page.dart';
 
 // Shared content widget that can be used in both standalone page and as tab content
 class CompletedContent extends StatelessWidget {
   const CompletedContent({super.key});
 
-  void _handleAddTask(BuildContext context) {
-    print('Empty state Add Task button pressed from CompletedPage');
-    // TODO: Navigate to add task page
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Thêm nhiệm vụ mới'),
-        backgroundColor: AppColors.primary,
+  void _handleAddTask(BuildContext context, String selectedCategoryId) {
+    // Convert category ID to real category name, or null if 'all'
+    String? initialCategory;
+    if (selectedCategoryId != 'all') {
+      final categoryData = CategoryConstants.getCategoryById(selectedCategoryId);
+      initialCategory = categoryData?.name;
+    }
+    
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TaskFormPage(
+          initialCategory: initialCategory,
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return EmptyState(
-      currentList: 'Hoàn thành',
-      onAddTask: () => _handleAddTask(context),
+    return BlocBuilder<HomeBloc, HomeState>(
+      builder: (context, state) {
+        return EmptyState(
+          currentList: 'Hoàn thành',
+          onAddTask: () => _handleAddTask(context, state.selectedCategoryId),
+        );
+      },
     );
   }
 }
