@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:taskaholic/core/di/di.dart';
 import 'package:taskaholic/core/themes/app_color.dart';
 import 'package:taskaholic/core/utils/task_date_utils.dart';
+import 'package:taskaholic/features/task/domain/entities/task_entity.dart';
+import 'package:taskaholic/features/task/presentation/bloc/task_bloc.dart';
+import 'package:taskaholic/features/task/presentation/bloc/task_event.dart';
+import 'package:taskaholic/features/task/presentation/bloc/task_state.dart';
 import 'package:taskaholic/features/task/presentation/widgets/category_dropdown.dart';
 import 'package:taskaholic/features/task/presentation/widgets/repeat_dropdown.dart';
 
-class TaskFormPage extends StatefulWidget {
+class TaskFormPage extends StatelessWidget {
   final String? initialCategory;
 
   const TaskFormPage({
@@ -13,10 +19,24 @@ class TaskFormPage extends StatefulWidget {
   });
 
   @override
-  State<TaskFormPage> createState() => _TaskFormPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => sl<TaskBloc>(),
+      child: _TaskFormContent(initialCategory: initialCategory),
+    );
+  }
 }
 
-class _TaskFormPageState extends State<TaskFormPage> {
+class _TaskFormContent extends StatefulWidget {
+  final String? initialCategory;
+  
+  const _TaskFormContent({this.initialCategory});
+  
+  @override
+  State<_TaskFormContent> createState() => _TaskFormContentState();
+}
+
+class _TaskFormContentState extends State<_TaskFormContent> {
   final _formKey = GlobalKey<FormState>();
   final _taskController = TextEditingController();
   
@@ -97,21 +117,20 @@ class _TaskFormPageState extends State<TaskFormPage> {
       _isLoading = true;
     });
 
-    // Simulate saving process
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tạo nhiệm vụ thành công!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    });
+    // Create task entity with unique ID
+    final task = TaskEntity(
+      id: '${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond}',
+      title: _taskController.text.trim(),
+      date: _selectedDate,
+      time: _selectedTime,
+      repeat: _selectedRepeat,
+      category: _selectedList,
+      isCompleted: false,
+      updatedAt: DateTime.now(),
+    );
+
+    // Add task through TaskBloc
+    context.read<TaskBloc>().add(AddTaskEvent(task));
   }
 
   void _handleDelete() {
@@ -143,7 +162,46 @@ class _TaskFormPageState extends State<TaskFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    return AddTaskUI(
+    return BlocListener<TaskBloc, TaskState>(
+      listener: (context, state) {
+        if (state is TaskActionSuccess) {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+            
+            // Show success message first
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.primary,
+                duration: const Duration(seconds: 1),
+              ),
+            );
+            
+            // Add small delay to ensure task is fully saved before closing
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (mounted) {
+                Navigator.pop(context);
+              }
+            });
+          }
+        } else if (state is TaskError) {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Lỗi: ${state.message}'),
+                backgroundColor: AppColors.error,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        }
+      },
+      child: AddTaskUI(
       taskController: _taskController,
       selectedDate: _selectedDate,
       selectedTime: _selectedTime,
@@ -166,6 +224,7 @@ class _TaskFormPageState extends State<TaskFormPage> {
           _selectedList = value;
         });
       },
+      ),
     );
   }
 }

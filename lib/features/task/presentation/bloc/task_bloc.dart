@@ -64,41 +64,65 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   }
 
   Future<void> _onAddTask(AddTaskEvent event, Emitter<TaskState> emit) async {
+    // Store current state info if available
+    List<TaskEntity> currentTasks = [];
+    List<TaskEntity> currentCompletedTasks = [];
+    String? currentList;
+    
     if (state is TasksLoaded) {
       final currentState = state as TasksLoaded;
+      currentTasks = currentState.tasks;
+      currentCompletedTasks = currentState.completedTasks;
+      currentList = currentState.currentList;
       
-      // Hiển thị trạng thái refreshing mà không mất dữ liệu hiện tại
+      // Show refreshing state if we have data
       emit(TaskRefreshing(
-        tasks: currentState.tasks,
-        completedTasks: currentState.completedTasks,
-        currentList: currentState.currentList,
+        tasks: currentTasks,
+        completedTasks: currentCompletedTasks,
+        currentList: currentList,
       ));
+    } else {
+      // Show loading for initial state
+      emit(TaskLoading());
+    }
+    
+    try {
+      final result = await addTask(event.task);
       
-      try {
-        final result = await addTask(event.task);
-        
-        result.fold(
-          (failure) {
-            developer.log('Lỗi khi thêm công việc: ${failure.message}', name: 'TaskBloc');
+      result.fold(
+        (failure) {
+          developer.log('Lỗi khi thêm công việc: ${failure.message}', name: 'TaskBloc');
+          if (state is TaskRefreshing) {
             // Khôi phục state trước đó khi có lỗi
-            emit(currentState);
-            emit(TaskError(failure.message));
-          },
-          (_) {
-            emit(TaskActionSuccess('Đã thêm công việc thành công'));
-            
-            // Lên lịch thông báo nếu task có thời gian
-            _scheduleNotificationForTask(event.task);
-            
-            add(const LoadTasksEvent());
-          },
-        );
-      } catch (e) {
-        developer.log('Lỗi không xác định khi thêm công việc: $e', name: 'TaskBloc');
+            emit(TasksLoaded(
+              tasks: currentTasks,
+              completedTasks: currentCompletedTasks,
+              currentList: currentList,
+            ));
+          }
+          emit(TaskError(failure.message));
+        },
+        (_) {
+          emit(TaskActionSuccess('Đã thêm công việc thành công'));
+          
+          // Lên lịch thông báo nếu task có thời gian
+          _scheduleNotificationForTask(event.task);
+          
+          // Reload tasks to get fresh data
+          add(const LoadTasksEvent());
+        },
+      );
+    } catch (e) {
+      developer.log('Lỗi không xác định khi thêm công việc: $e', name: 'TaskBloc');
+      if (state is TaskRefreshing) {
         // Khôi phục state trước đó khi có lỗi
-        emit(currentState);
-        emit(TaskError('Không thể thêm công việc: $e'));
+        emit(TasksLoaded(
+          tasks: currentTasks,
+          completedTasks: currentCompletedTasks,
+          currentList: currentList,
+        ));
       }
+      emit(TaskError('Không thể thêm công việc: $e'));
     }
   }
 

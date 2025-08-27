@@ -17,10 +17,10 @@ import '../../features/task/presentation/bloc/task_bloc.dart';
 // Core Services - Currently implemented
 import '../services/notification_service.dart';
 
-// TODO: Implement these features later
-// import '../../features/task/data/datasources/local_datasource.dart';
-// import '../../features/task/data/datasources/remote_datasource.dart';
-// import '../../features/task/data/repositories/task_repository_impl.dart';
+// Task data layer - Now implemented
+import '../../features/task/data/datasources/task_local_datasource.dart';
+import '../../features/task/data/repositories/task_repository_impl.dart';
+import '../../features/task/domain/repositories/task_repository.dart';
 
 // TODO: Legacy imports for transition - Remove after refactor complete
 // import '../../domain/usecases/update_tasks_category.dart';
@@ -52,8 +52,8 @@ import '../../features/auth/presentation/bloc/auth_bloc.dart';
 // import '../../data/datasources/local/category_local_datasource.dart';
 // import '../../data/datasources/remote/category_remote_datasource.dart';
 
-// TODO: Home BLoC - Not implemented yet
-// import '../../presentation/pages/home/home_bloc.dart';
+// Home feature - Now implemented
+import '../../features/home/presentation/bloc/home_bloc.dart';
 
 // TODO: Additional services - Not implemented yet
 // import '../services/category_service.dart';
@@ -72,9 +72,11 @@ Future<void> init() async {
   // Auth feature - Now implemented
   _registerAuthFeature();
   
+  // Home feature - Now implemented
+  _registerHomeFeature();
+  
   // TODO: Uncomment when these features are implemented
   // _registerCategoryFeature();
-  // _registerHomeFeature();
 }
 
 /// Register core dependencies
@@ -112,21 +114,15 @@ void _registerTaskFeature() {
   sl.registerLazySingleton(() => ToggleTask(sl()));
   sl.registerLazySingleton(() => ClearCompletedTasks(sl()));
 
-  // TODO: Task repository and data sources
-  // sl.registerLazySingleton<TaskRepository>(
-  //   () => TaskRepositoryImpl(
-  //     localDataSource: sl(),
-  //     remoteDataSource: sl(),
-  //   ),
-  // );
+  // Task repository and data sources
+  sl.registerLazySingleton<TaskRepository>(
+    () => TaskRepositoryImpl(localDataSource: sl()),
+  );
   
-  // TODO: Task data sources
-  // sl.registerLazySingleton<TaskLocalDataSource>(
-  //   () => TaskLocalDataSourceImpl(sharedPreferences: sl()),
-  // );
-  // sl.registerLazySingleton<TaskRemoteDataSource>(
-  //   () => TaskRemoteDataSourceImpl(firestore: sl(), firebaseAuth: sl()),
-  // );
+  // Task data sources
+  sl.registerLazySingleton<TaskLocalDataSource>(
+    () => TaskLocalDataSourceImpl(sharedPreferences: sl()),
+  );
 }
 
 /// Register Auth feature dependencies
@@ -187,10 +183,10 @@ void _registerAuthFeature() {
 //   );
 // }
 
-/// TODO: Register Home feature dependencies
-// void _registerHomeFeature() {
-//   sl.registerFactory(() => HomeBloc());
-// }
+/// Register Home feature dependencies
+void _registerHomeFeature() {
+  sl.registerFactory(() => HomeBloc(getTasks: sl()));
+}
 
 /// Reset all dependencies (call on logout)
 void reset() {

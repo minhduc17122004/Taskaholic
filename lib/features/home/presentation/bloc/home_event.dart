@@ -24,3 +24,11 @@ class ChangeCategoryEvent extends HomeEvent {
   @override
   List<Object> get props => [categoryId];
 }
+
+class LoadTasksEvent extends HomeEvent {
+  const LoadTasksEvent();
+}
+
+class RefreshTasksEvent extends HomeEvent {
+  const RefreshTasksEvent();
+}
