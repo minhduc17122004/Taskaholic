@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:taskaholic/core/di/di.dart' as di;
 import 'package:taskaholic/app.dart';
 
@@ -14,6 +15,10 @@ void main() async {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+    
+    // Initialize locale data for Vietnamese
+    await initializeDateFormatting('vi_VN', null);
+    developer.log('Vietnamese locale initialized successfully', name: 'Main');
     
     // Initialize Firebase
     await Firebase.initializeApp();

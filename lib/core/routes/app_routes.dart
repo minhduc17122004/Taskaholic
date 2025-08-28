@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:taskaholic/features/home/presentation/pages/home_page.dart';
+import 'package:taskaholic/features/task/presentation/pages/task_form_page.dart';
+import 'package:taskaholic/features/task/domain/entities/task_entity.dart';
 
 // TODO: Uncomment when these features are implemented
 // import 'package:taskaholic/features/auth/presentation/pages/login/login_page.dart';
@@ -10,8 +12,9 @@ class AppRoutes {
   static const String login = '/login';
   static const String home = '/';
   static const String completed = '/completed';
-  // TODO: Add more routes as features are implemented
-  // static const String taskForm = '/task-form';
+  static const String taskForm = '/task-form';
+  static const String taskEdit = '/task-edit';
+  // TODO: Add more routes as features are implemented  
   // static const String settings = '/settings';
   // static const String categories = '/categories';
 }
@@ -33,25 +36,28 @@ class AppRouter {
           settings: settings,
         );
         
+      case AppRoutes.taskForm:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => TaskFormPage(
+            initialCategory: args?['initialCategory'] as String?,
+          ),
+          settings: settings,
+        );
+        
+      case AppRoutes.taskEdit:
+        final task = settings.arguments as TaskEntity;
+        return MaterialPageRoute(
+          builder: (_) => TaskFormPage(
+            taskToEdit: task,
+          ),
+          settings: settings,
+        );
+        
       // TODO: Uncomment when CompletedPage is implemented
       // case AppRoutes.completed:
       //   return MaterialPageRoute(
       //     builder: (_) => const CompletedPage(),
-      //     settings: settings,
-      //   );
-        
-      // TODO: Add more routes as features are implemented
-      // case AppRoutes.taskForm:
-      //   final task = settings.arguments as TaskEntity?;
-      //   return MaterialPageRoute(
-      //     builder: (_) => AddTaskScreen(existingTask: task),
-      //     settings: settings,
-      //   );
-        
-      // case AppRoutes.taskDetail:
-      //   final taskId = settings.arguments as String;
-      //   return MaterialPageRoute(
-      //     builder: (_) => TaskDetailScreen(taskId: taskId),
       //     settings: settings,
       //   );
         

@@ -126,10 +126,10 @@ class TaskEntity extends Equatable {
 
     final diff = taskDate.difference(today).inDays;
     if (diff > 0 && diff < 7) {
-      return formatTaskDate(taskDate);
+      return formatTaskDateSync(taskDate);
     }
 
-    return formatTaskDate(taskDate);
+    return formatTaskDateSync(taskDate);
   }
 
   String getTaskDate() {

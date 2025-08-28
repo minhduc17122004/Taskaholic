@@ -12,25 +12,34 @@ import 'package:taskaholic/features/task/presentation/widgets/repeat_dropdown.da
 
 class TaskFormPage extends StatelessWidget {
   final String? initialCategory;
+  final TaskEntity? taskToEdit;
 
   const TaskFormPage({
     super.key,
     this.initialCategory,
+    this.taskToEdit,
   });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<TaskBloc>(),
-      child: _TaskFormContent(initialCategory: initialCategory),
+      child: _TaskFormContent(
+        initialCategory: initialCategory,
+        taskToEdit: taskToEdit,
+      ),
     );
   }
 }
 
 class _TaskFormContent extends StatefulWidget {
   final String? initialCategory;
+  final TaskEntity? taskToEdit;
   
-  const _TaskFormContent({this.initialCategory});
+  const _TaskFormContent({
+    this.initialCategory,
+    this.taskToEdit,
+  });
   
   @override
   State<_TaskFormContent> createState() => _TaskFormContentState();
@@ -45,17 +54,108 @@ class _TaskFormContentState extends State<_TaskFormContent> {
   String _selectedRepeat = 'Không lặp lại';
   String? _selectedList;
   bool _isLoading = false;
+  
+  // Track changes for edit mode
+  late String _originalTitle;
+  late DateTime? _originalDate;
+  late TimeOfDay? _originalTime;
+  late String _originalRepeat;
+  late String? _originalCategory;
 
   @override
   void initState() {
     super.initState();
+    
+    // If editing existing task, populate fields and store original values
+    if (widget.taskToEdit != null) {
+      final task = widget.taskToEdit!;
+      _taskController.text = task.title;
+      _selectedDate = task.date;
+      _selectedTime = task.time;
+      _selectedRepeat = task.repeat;
+      _selectedList = task.category;
+      
+      // Store original values for change tracking
+      _originalTitle = task.title;
+      _originalDate = task.date;
+      _originalTime = task.time;
+      _originalRepeat = task.repeat;
+      _originalCategory = task.category;
+    } else {
+      // For new task, use initial category if provided
     _selectedList = widget.initialCategory;
+      
+      // Initialize original values for new task
+      _originalTitle = '';
+      _originalDate = null;
+      _originalTime = null;
+      _originalRepeat = 'Không lặp lại';
+      _originalCategory = widget.initialCategory;
+    }
   }
 
   @override
   void dispose() {
     _taskController.dispose();
     super.dispose();
+  }
+
+  /// Check if there are any unsaved changes
+  bool _hasUnsavedChanges() {
+    if (widget.taskToEdit == null) {
+      // For new tasks, check if any field has been filled
+      return _taskController.text.trim().isNotEmpty ||
+          _selectedDate != null ||
+          _selectedTime != null ||
+          _selectedRepeat != 'Không lặp lại' ||
+          _selectedList != widget.initialCategory;
+    } else {
+      // For existing tasks, compare with original values
+      return _taskController.text.trim() != _originalTitle ||
+          _selectedDate != _originalDate ||
+          _selectedTime != _originalTime ||
+          _selectedRepeat != _originalRepeat ||
+          _selectedList != _originalCategory;
+    }
+  }
+
+  /// Show confirmation dialog when there are unsaved changes
+  Future<bool> _showUnsavedChangesDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.backgroundDark,
+        title: const Text(
+          'Lưu thay đổi?',
+          style: TextStyle(color: AppColors.textOnPrimary),
+        ),
+        content: const Text(
+          'Bạn có những thay đổi chưa được lưu. Bạn có muốn lưu trước khi thoát?',
+          style: TextStyle(color: AppColors.textOnPrimary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false), // Cancel without saving
+            child: const Text(
+              'Hủy',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true), // Save
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+            ),
+            child: const Text(
+              'Lưu',
+              style: TextStyle(color: AppColors.textOnPrimary),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false; // true (save) or false (cancel without saving)
   }
 
   Future<void> _selectDate() async {
@@ -117,7 +217,24 @@ class _TaskFormContentState extends State<_TaskFormContent> {
       _isLoading = true;
     });
 
-    // Create task entity with unique ID
+    final isEditMode = widget.taskToEdit != null;
+
+    if (isEditMode) {
+      // Update existing task
+      final updatedTask = widget.taskToEdit!.copyWith(
+        title: _taskController.text.trim(),
+        date: _selectedDate,
+        time: _selectedTime,
+        repeat: _selectedRepeat,
+        category: _selectedList,
+        updatedAt: DateTime.now(),
+      );
+      
+      print('Debug: Updating task with ID: ${updatedTask.id}');
+      print('Debug: Title: ${updatedTask.title}');
+      context.read<TaskBloc>().add(UpdateTaskEvent(updatedTask));
+    } else {
+      // Create new task
     final task = TaskEntity(
       id: '${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond}',
       title: _taskController.text.trim(),
@@ -129,19 +246,25 @@ class _TaskFormContentState extends State<_TaskFormContent> {
       updatedAt: DateTime.now(),
     );
 
-    // Add task through TaskBloc
     context.read<TaskBloc>().add(AddTaskEvent(task));
+    }
   }
 
   void _handleDelete() {
+    if (widget.taskToEdit == null) {
+      // If not editing a task, just go back
+      Navigator.pop(context);
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.backgroundDark,
         title: const Text('Xác nhận xóa', style: TextStyle(color: AppColors.textOnPrimary)),
-        content: const Text(
-          'Bạn có chắc chắn muốn xóa nhiệm vụ này?',
-          style: TextStyle(color: AppColors.textOnPrimary),
+        content: Text(
+          'Bạn có chắc chắn muốn xóa nhiệm vụ "${widget.taskToEdit!.title}"?',
+          style: const TextStyle(color: AppColors.textOnPrimary),
         ),
         actions: [
           TextButton(
@@ -150,8 +273,10 @@ class _TaskFormContentState extends State<_TaskFormContent> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
+              Navigator.pop(context); // Close dialog
+              
+              // Delete task through bloc
+              context.read<TaskBloc>().add(DeleteTaskEvent(widget.taskToEdit!.id));
             },
             child: const Text('Xóa', style: TextStyle(color: AppColors.error)),
           ),
@@ -201,6 +326,24 @@ class _TaskFormContentState extends State<_TaskFormContent> {
           }
         }
       },
+      child: WillPopScope(
+        onWillPop: () async {
+          // Check for unsaved changes
+          if (_hasUnsavedChanges() && !_isLoading) {
+            final shouldSave = await _showUnsavedChangesDialog();
+            
+            if (shouldSave == true) {
+              // User chose "Lưu"
+              _handleSave();
+              return false; // Let bloc handle navigation after save
+            } else {
+              return true;
+            }
+          }
+          
+          // No changes, allow navigation
+          return true;
+      },
       child: AddTaskUI(
       taskController: _taskController,
       selectedDate: _selectedDate,
@@ -208,7 +351,7 @@ class _TaskFormContentState extends State<_TaskFormContent> {
       selectedRepeat: _selectedRepeat,
       selectedList: _selectedList,
       isLoading: _isLoading,
-      isEditing: false,
+          isEditing: widget.taskToEdit != null,
       formKey: _formKey,
       onSave: _handleSave,
       onDelete: _handleDelete,
@@ -224,6 +367,7 @@ class _TaskFormContentState extends State<_TaskFormContent> {
           _selectedList = value;
         });
       },
+        ),
       ),
     );
   }
@@ -299,6 +443,7 @@ class AddTaskUI extends StatelessWidget {
           ),
         ],
       ),
+      floatingActionButton: null, // Remove FAB since we have check button in AppBar
       body: SafeArea(
         child: Form(
           key: formKey,
@@ -402,6 +547,8 @@ class AddTaskUI extends StatelessWidget {
 
                 const SizedBox(height: 32),
 
+                // Only show save button for new tasks, not when editing
+                if (!isEditing)
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -415,12 +562,13 @@ class AddTaskUI extends StatelessWidget {
                     ),
                     child: isLoading
                         ? const CircularProgressIndicator(color: AppColors.textOnPrimary)
-                        : Text(
-                            isEditing ? 'Cập nhật nhiệm vụ' : 'Tạo nhiệm vụ',
-                            style: const TextStyle(color: AppColors.textOnPrimary),
-                          ),
+                          : const Text(
+                              'Tạo nhiệm vụ',
+                              style: TextStyle(color: AppColors.textOnPrimary),
+                            ),
+                    ),
                   ),
-                ),
+
               ],
             ),
           ),

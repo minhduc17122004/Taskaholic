@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:taskaholic/core/di/di.dart';
+import 'package:taskaholic/core/routes/app_routes.dart';
 import 'package:taskaholic/core/themes/app_color.dart';
 import 'package:taskaholic/core/utils/category_constants.dart';
 import 'package:taskaholic/features/home/presentation/widgets/app_bar.dart';
@@ -16,7 +17,6 @@ import 'package:taskaholic/features/home/presentation/bloc/home_state.dart';
 import 'package:taskaholic/features/home/presentation/pages/completed_page.dart';
 import 'package:taskaholic/features/category/presentation/pages/category_page.dart';
 import 'package:taskaholic/features/category/presentation/widgets/add_category_dialog.dart';
-import 'package:taskaholic/features/task/presentation/pages/task_form_page.dart';
 import 'package:taskaholic/features/task/domain/entities/task_entity.dart';
 import 'package:taskaholic/shared/widgets/default_bottom_bar.dart';
 
@@ -198,13 +198,10 @@ class _HomeTab extends StatelessWidget {
       initialCategory = categoryData?.name;
     }
     
-    Navigator.push(
+    Navigator.pushNamed(
       context,
-      MaterialPageRoute(
-        builder: (context) => TaskFormPage(
-          initialCategory: initialCategory,
-        ),
-      ),
+      AppRoutes.taskForm,
+      arguments: {'initialCategory': initialCategory},
     ).then((_) {
       // Add small delay to ensure task is fully saved before refreshing
       Future.delayed(const Duration(milliseconds: 300), () {
@@ -347,15 +344,11 @@ class _HomeTab extends StatelessWidget {
   }
 
   void _handleTaskTap(BuildContext context, TaskEntity task) {
-    // TODO: Navigate to task detail or edit page
-    Navigator.push(
+    // Navigate directly to edit task page
+    Navigator.pushNamed(
       context,
-      MaterialPageRoute(
-        builder: (context) => TaskFormPage(
-          // TODO: Add editing support
-          initialCategory: task.category,
-        ),
-      ),
+      AppRoutes.taskEdit,
+      arguments: task,
     ).then((_) {
       context.read<HomeBloc>().add(const RefreshTasksEvent());
     });
